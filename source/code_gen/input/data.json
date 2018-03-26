@@ -1,0 +1,107 @@
+{
+    "module_name": "my_module",
+    "platform": "Any",
+    "synopsis": "",
+    "moduleauthor": "Ajeet Singh",
+    "module": {
+        "classes":{
+            "Person": {
+                "details": {
+                    "description": "",
+                    "examples": "",
+                    "notes": "",
+                    "type": "default",
+                    "inherits": ["object"],
+                    "is_abstract": false,
+                    "is_interface": false
+                },
+                "constructors": {
+                    "0": {
+                        "description":"",
+                        "body": ""
+                    },
+                    "1": {
+                        "description": "",
+                        "body": "",
+                        "args": {
+                            "fname": {
+                                "type": "string",
+                                "default": "",
+                                "required": true,
+                                "description": ""
+                            },
+                            "lname": {
+                                "type": "string",
+                                "default": "",
+                                "required": false,
+                                "description": ""
+                            }
+                        }
+                    }
+                },
+                "fields": {
+                    "first_name": {
+                        "type": "string",
+                        "default": "",
+                        "access": "public",
+                        "description": ""
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "default": "",
+                        "access": "public",
+                        "description": ""
+                    },
+                    "phone": {
+                        "type": "int",
+                        "default": 0,
+                        "access": "public",
+                        "description": ""
+                    }
+                },
+                "methods": {
+                    "get_first_name": {
+                        "args": {},
+                        "body": "",
+                        "returns": ["string"],
+                        "description": ""
+                    },
+                    "get_last_name": {
+                        "args": {},
+                        "body": "",
+                        "returns": ["string"],
+                        "description": ""
+                    },
+                    "set_first_name": {
+                        "args": {
+                            "fname": {
+                                "type": "string",
+                                "default": "",
+                                "required": true,
+                                "description": ""
+                            }
+                        },
+                        "body": "",
+                        "returns": [],
+                        "description": ""
+                    },
+                    "set_last_name": {
+                        "args": {
+                            "lname": {
+                                "type": "string",
+                                "default": "",
+                                "required": true,
+                                "description": ""
+                            }
+                        },
+                        "body": "",
+                        "returns": [],
+                        "description": ""
+                    }
+                }
+            },
+            "ClassB": {}
+        },
+        "functions": {}
+    }
+}

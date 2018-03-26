@@ -1,0 +1,21 @@
+{#
+    name: class_with_static_methods
+    description: Template for generating an class with static methods. This template inherits from 'base_class' template
+    author: Ajeet Singh
+    JSON structure:
+#}
+{% extends 'base_class.j2' %}
+{% block static_methods_block %}
+{% if methods %}
+    
+    # --- static methods ---
+{% for method, method_details in methods.items() %}
+{% if method_details.type == 'static' %}
+    @staticmethod
+{% include 'method.j2' %}
+{% endif %}
+{% endfor %}
+
+    # --- end static methods ---
+{% endif %}
+{% endblock %}

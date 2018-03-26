@@ -1,0 +1,21 @@
+{#
+    name: class_with_class_methods
+    description: Template for generating an class with class methods. This template inherits from 'base_class' template
+    author: Ajeet Singh
+    JSON structure:
+#}
+{% extends 'base_class.j2' %}
+{% block class_methods_block %}
+{% if methods %}
+    
+    # --- class methods ---
+{% for method, method_details in methods.items() %}
+{% if method_details.type == 'class' %}
+    @classmethod
+{% include 'method.j2' %}
+{% endif %}
+{% endfor %}
+
+    # --- end class methods ---
+{% endif %}
+{% endblock %}

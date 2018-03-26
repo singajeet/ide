@@ -1,0 +1,67 @@
+{# 
+    name: customizable class
+    description: a class template that can be customized as per requirements. This template inherits from base_class, abstract_class, single_ton, class_with_static and class_with_class_method templates. 
+    language: python
+    author: ajeet singh
+#}
+{% if options and options.class_type %}
+{# --- select parent template --- #}
+{% if options.class_type == 'abstract' %}
+{% include 'abstract_class.j2'
+{% elif options.class_type == 'singleton' %}
+{% include 'singleton_class.j2' %}
+{% else %}
+{% include 'class.j2' %}
+{% endif %}
+{% else %}
+{% include 'class.j2' %}
+{% endif %}
+{# --- end select parent template --- #}
+{% if options.support_static_m %}
+{% block static_methods_block %}
+{% if methods %}
+    
+    # --- static methods ---
+{% for method, method_details in methods.items() %}
+{% if method_details.type == 'static' %}
+    @staticmethod
+{% include 'method.j2' %}
+
+{% endif %}
+{% endfor %}
+
+    # --- end static methods ---
+{% endif %}
+{% endblock %}
+{% endif %}
+{% if options.support_cls_m %}
+{% block class_methods_block %}
+{% if methods %}
+    
+    # --- class methods ---
+{% for method, method_details in methods.items() %}
+{% if method_details.type == 'class' %}
+    @classmethod
+{% include 'method.j2' %}
+
+{% endif %}
+{% endfor %}
+
+    # --- end class methods ---
+{% endif %}
+{% endblock %}
+{% endif %}
+{% if options.support_special_m %}
+
+    # --- special methods ---
+{% block builtin_methods_block %}
+{{ super() }}
+{% if options.support_len %}
+    # ---  __len__ method def ---
+    def __len__(self):
+        
+{% endif %}
+{% endblock %}
+
+    # --- end special methods ---
+{% endif %}

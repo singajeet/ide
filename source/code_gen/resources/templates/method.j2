@@ -1,0 +1,37 @@
+{#
+    name: method template
+    description: template for an python method (member of a class)
+    language: Python
+    author: Ajeet Singh
+    JSON structure:
+#}
+{% if method_details.args|length <= 0 %}
+    def {{ method }}(self){{ ' -> ' ~  expand_return(method_details.returns) if method_details.returns }}:
+        """{{ method_details.description|default('No description') }}
+
+{% if method_details.returns %}
+        Returns:
+{% for return_idx, return in method_details.returns.items() %}
+            {{ return.type }}: {{ return.description }}
+{% endfor %}
+{% endif %}
+        """
+{% else %}
+    def {{ method }}(self{{ expand_args(method_details.args) }}){{ ' -> ' ~  expand_return(method_details.returns) if method_details.returns }}:
+        """{{ method_details.description|default('No description') }}
+
+        Args:
+{% for arg, arg_details in method_details.args.items() %}
+            {{ arg }} ({{ arg_details.type }}): {{ arg_details.description }}
+{% endfor %}
+{% if method_details.returns %}
+
+        Returns:
+{% for return_idx, return in method_details.returns.items() %}
+            {{ return.type }}: {{ return.description }}
+{% endfor %}
+{% endif %}
+
+        """
+{% endif %}
+        {{ method_details.body|default('pass') }}

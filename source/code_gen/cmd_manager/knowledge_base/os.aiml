@@ -1,0 +1,122 @@
+<?xml version="1.0" ?>
+<aiml version="1.0">
+    <meta name="author" content="ajeet singh" />
+    <category>
+        <pattern>
+            SHOW
+        </pattern>
+        <template>
+            show what?<!-- files, dir, movie, stage show or ahmm... gentlemen show ;)?-->
+        </template>
+    </category>
+    <category>
+        <pattern>
+            FILES
+        </pattern>
+        <that>
+            SHOW WHAT<!--? files, dir, movie, stage show or ahmm... gentlemen show ;)?-->
+        </that>
+        <template>
+            <srai>SHOW FILES</srai>
+        </template>
+    </category>
+    <category>
+        <pattern>SHOW FILES</pattern>
+        <template>
+            <!-- <srai>SHOW FILES .</srai>-->
+            show all files
+        </template>
+    </category>
+    <category>
+        <pattern>SHOW FILES *</pattern>
+        <template>
+            <system>
+                ls -p <star/> | grep -v / 
+            </system>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            DIR
+        </pattern>
+        <that>
+            show what? files, dir, movie, stage show or ahmm... gentlemen show ;)?
+        </that>
+        <template>
+            <srai>
+                SHOW DIR
+            </srai>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            SHOW DIR
+        </pattern>
+        <template>
+            <srai>
+                SHOW DIR */
+            </srai>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            SHOW DIR *
+        </pattern>
+        <template>
+            <system>
+                ls -d <star />
+            </system>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            MOVIE
+        </pattern>
+        <that>
+            show what? files, dir, movie, stage show or ahmm... gentlemen show ;)?
+        </that>
+        <template>
+            ok, which movie you would like to see?
+        </template>
+    </category>
+    <category>
+        <pattern>
+            *
+        </pattern>
+        <that>
+            ok, which movie you would like to see?
+        </that>
+        <template>
+            Ahh... <star />!! Really?? Why you want to waste time? Let's do the real work. Tell me how can I help you?
+        </template>
+    </category>
+    <category>
+        <pattern>
+            * SHOW
+        </pattern>
+        <that>
+            show what? files, dir, movie, stage show or ahmm... gentlemen show ;)?
+        </that>
+        <template>
+            I beg your pardon! Can you tell me again?<think><set name="show"></set></think>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            * SHOW
+        </pattern>
+        <that>
+            I beg your pardon! Can you tell me again?
+        </that>
+        <template>
+            <condition name="show">
+                <li value="gentlemen">
+                    Hmmm... does your wife knows about it? Let me call and tell her
+                </li>
+                <li>
+                    Ahhh... <star /> show. Would you like to go with your boss?
+                </li>
+            </condition>
+        </template>
+    </category>
+</aiml>

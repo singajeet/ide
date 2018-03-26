@@ -1,0 +1,83 @@
+{#
+    name: macro_utils
+    description: utility / general purpose macros
+    author: Ajeet Singh
+#}
+
+{# --- start print_assign_field macro start --- #}
+{% macro print_assign_field(var_name, var_val, prefix='') %}
+self.{{ prefix ~ var_name }} = {{ var_val|default(None) }}
+{% endmacro %}
+{# --- end macro def --- #}
+
+{# --- start print_str_assign_field macro start --- #}
+{% macro print_str_assign_field(var_name, var_val, prefix='') %}
+self.{{ prefix ~ var_name }} = '{{ var_val|default('') }}'
+{% endmacro %}
+{# --- end macro def --- #}
+
+{# --- start print_comment macro def --- #}
+{% macro print_comment(comment) %}
+# -- {{ comment }} --
+{% endmacro %}
+{# --- end macro def --- #}
+
+{# --- start print_field macro def --- #}
+{% macro print_field(field_name, field_details, prefix='') %}
+{% if field_details.description %}{{ print_comment(field_details.description) }}{% endif %}
+{% if field_details.type and field_details.type in ['str', 'string', 'text'] %}
+{{ print_str_assign_field(field_name, field_details.default, prefix) }}
+{%- elif field_details.type and field_details.type in ['int', 'integer', 'float', 'double'] %}
+{{ print_assign_field(field_name, field_details.default, prefix) }}
+{%- else %}
+{{ print_assign_field(field_name, field_details.default, prefix) }}
+{%- endif %}
+{% endmacro %}
+{# --- end macro def --- #}
+
+{# --- start expand_arg macro definition --- #}
+{%- macro expand_arg(name, type, default) -%}
+{{ name }}{{ ': ' ~ type if type }}{%- if default and type in ['str','string'] -%}='{{ default }}'{%- elif default -%}={{ default }}{%- endif -%}
+{%- endmacro -%}
+{# --- end macro definition --- #}
+
+{# --- start expand_args macro definition ---#}
+{%- macro expand_args(args) -%}
+{%- for arg_name, arg_details in args.items() -%}, {{ expand_arg(arg_name, arg_details.type, arg_details.default) }}{%- endfor -%}
+{%- endmacro -%}
+{# --- end macro definition --- #}
+
+{# --- start expand_return macro definition --- #}
+{% macro expand_return(returns) -%}
+{{ '( ' if returns|length > 1 }}{% for return_idx, return in returns.items() %}{{ return.type ~ ', ' if not loop.last else return.type }}{% endfor %}{{ ' )' if returns|length > 1 }}
+{%- endmacro -%}
+{# --- end macro definition --- #}
+
+{# --- start print_property macro def --- #}
+{% macro print_property(prop_name, prop) %}
+#-#-- property {{ prop_name }} --
+@property
+def {{ prop_name }}(self):
+    """GETTER: {{ prop.description }}
+
+    """
+    return self._{{ prop_name }}
+
+{% if not prop.prop_type or prop.prop_type == 'rw' %}
+@{{ prop_name }}.setter
+def {{ prop_name }}(self, value):
+    """SETTER: {{ prop.description }}
+
+    """
+    if self._{{ prop_name }} != value:
+{% if prop.condition %}
+        if {{ prop.condition }}:
+            self._{{ prop_name }} = value
+        {% else %}
+        self._{{ prop_name }} = value
+        {% endif %}
+
+{% endif %}
+#-#-- end property {{ prop_name }} --
+{% endmacro %}
+{# --- end macro def --- #}

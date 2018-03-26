@@ -1,0 +1,22 @@
+{#
+    name: singleton_class template
+    description: Template for generating an singleton class. This template inherits from 'base_class' template
+    author: Ajeet Singh
+    language: Python
+    JSON structure:
+#}
+{% extends 'base_class_template.j2' %}
+{% block builtin_methods_block %}
+    #singleton object variable
+    {{ singleton_var_name|default('__singleton_object') }} = None
+
+    #singleton class new method
+    def __new__(cls, *args, **kwargs):
+        """{{ singleton_new_func_desc|default('No description') }}
+
+        """
+        if cls != type(cls.{{ singleton_var_name|default('__singleton_object') }}):
+            cls.{{ singleton_var_name|default('__singleton_object') }} = object.__new__(cls, *args, **kwargs)
+        return cls.{{ singleton_var_name|default('__singleton_object') }}
+
+{% endblock %}

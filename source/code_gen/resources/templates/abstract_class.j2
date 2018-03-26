@@ -1,0 +1,30 @@
+{#
+    name: abstract_class template
+    description: Template for generating an abstract class. This template inherits from 'base_class' template
+    author: Ajeet Singh
+    JSON structure:
+#}
+{% extends 'base_class.j2' %}
+{% block import_block %}
+from abc import ABCMeta, abstractmethod
+
+
+{% endblock %}
+{% block class_variables %}
+    __metaclass__ = ABCMeta
+
+{% endblock %}
+{% block abstract_method_block %}
+{% if methods %}
+
+    # --- abstract methods ---
+{% for method, method_details in methods.items() %}
+{% if method_details.type == 'abstract' %}
+    @abstractmethod
+{% include 'method.j2' %}
+{% endif %}
+{% endfor %}
+
+    # --- end abstract methods ---
+{% endif %}
+{% endblock %}

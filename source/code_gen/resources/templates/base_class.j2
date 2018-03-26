@@ -1,0 +1,137 @@
+{#
+    name: base_class template
+    description: Template for generating any kind of class. All other class template should inherit from this template
+    author: Ajeet Singh
+    JSON structure:
+#}
+{% from 'macro_utils.j2' import expand_arg, expand_args, print_field,
+expand_return, print_property %}
+{# --- start import block --- #}
+{% block import_block %}
+{% endblock %}
+{# --- end import block --- #}
+#-- start class --
+{% block class_prefix %}{% endblock %}class {{ class_name }} ({{ inherits|default('object') }}):
+    """
+    {{ description|default('No Description') }}
+
+{% if examples %}
+    Example:
+        {{ examples }}
+
+{% endif %}
+{% if notes %}
+    Notes:
+        {{ notes }}
+
+{% endif %}
+    """
+{# --- class variables block --- #}
+{% block class_var_block %}
+{% endblock %}
+{# --- end class variables block --- #}
+{# --- static-methods block --- #}
+{% block static_methods_block %}
+{% endblock %}
+{# --- end static-methods block --- #}
+{# --- class-methods block --- #}
+{% block class_methods_block %}
+{% endblock %}
+{# --- end class-methods block --- #}
+{# --- built-in methods block --- #}
+{% block builtin_methods_block %}
+{% endblock %}
+{# --- end built-in methods block --- #}
+{# --- constructors block --- #}
+{% block constructors_block scoped %}
+{% if constructors %}
+    #-- constructors --
+{% for construct_idx, construct_details in constructors.items() %}
+{%- if construct_idx == '0' %}
+    def __init__(self):
+        """{{ construct_details.description|default('-- description --') }}
+
+        """
+{# --- prop assign block --- #}
+{% block props_assign_block scoped %}
+{% if properties %}
+        #-#-- Init properties --
+{% for prop_name, prop in properties.items() %}
+        {{ print_field(prop_name, prop, '_')|indent(8) }}
+        {%- endfor %}
+        #-#-- end init properties --
+
+{% endif %}
+{% endblock %}
+{# --- end props assign block --- #}
+{# --- fields assign block --- #}
+{% block fields_block scoped %}
+{% if fields %}
+        #-#-- Init fields --
+{% for field_name, field_details in fields.items() %}
+        {{ print_field(field_name, field_details)|indent(8) }}
+        {%- endfor %}
+        #-#-- end init fields --
+
+{% if construct_details.body %}
+        {{ construct_details.body }}
+
+{% endif %}
+{% else %}
+        {{ construct_details.body|default('pass') }}
+
+{% endif %}
+{% endblock %}
+{# --- end fields assign block --- #}
+{% else %}
+    def __init__(self{{ expand_args(construct_details.args) }}):
+        """{{ construct_details.description|default('-- description --') }}
+{% if construct_details.args and construct_details.args|length >0 %}
+
+        Args:
+{% for arg, arg_details in construct_details.args.items() %}
+            {{ arg }} ({{ arg_details.type }}): {{ arg_details.description }}
+{% endfor %}
+
+{% endif %}
+        """
+        {{ construct_details.body|default('pass') }}
+
+{% endif %}
+{% endfor %}
+    #-- end constructors --
+
+{% endif %}
+{% endblock %}
+{# --- end constructors block --- #}
+{# --- properties block --- #}
+{% block properties_block scoped %}
+{% if properties %}
+    #-- properties --
+{% for prop_name, prop in properties.items() %}
+    {{ print_property(prop_name, prop)|indent() }}
+    {%- endfor %}
+    #-- end properties --
+
+{% endif %}
+{% endblock %}
+{# --- end properties block --- #}
+{# --- methods block --- #}
+{% block methods_block scoped %}
+{% if methods %}
+    #-- define methods --
+{% for method, method_details in methods.items() %}
+{% if not method_details.type or method_details.type == 'default' -%}    
+{% include 'method.j2' %}
+{% endif %}
+{% endfor %}
+
+    #-- end define methods --
+{% endif %}
+{% endblock %}
+{# --- end methods block --- #}
+{# --- abstract method block --- #}
+{% block abstract_method_block %}
+{% endblock %}
+{# --- end abstract method block --- #}
+#-- end class --
