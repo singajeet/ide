@@ -6,7 +6,7 @@
             SHOW
         </pattern>
         <template>
-            show what?<!-- files, dir, movie, stage show or ahmm... gentlemen show ;)?-->
+            show what? files, dir, movie, stage show or ahmm... gentlemen show? 
         </template>
     </category>
     <category>
@@ -14,7 +14,7 @@
             FILES
         </pattern>
         <that>
-            SHOW WHAT<!--? files, dir, movie, stage show or ahmm... gentlemen show ;)?-->
+            SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
         </that>
         <template>
             <srai>SHOW FILES</srai>
@@ -23,8 +23,22 @@
     <category>
         <pattern>SHOW FILES</pattern>
         <template>
-            <!-- <srai>SHOW FILES .</srai>-->
-            show all files
+            <system>
+                ls -p | grep -v / 
+            </system>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            FILES *
+        </pattern>
+        <that>
+            SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
+        </that>
+        <template>
+            <srai>
+                SHOW FILES <star/>
+            </srai>
         </template>
     </category>
     <category>
@@ -40,7 +54,7 @@
             DIR
         </pattern>
         <that>
-            show what? files, dir, movie, stage show or ahmm... gentlemen show ;)?
+            SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
         </that>
         <template>
             <srai>
@@ -53,8 +67,21 @@
             SHOW DIR
         </pattern>
         <template>
+            <system>
+                ls -d
+            </system>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            DIR *
+        </pattern>
+        <that>
+            SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
+        </that>
+        <template>
             <srai>
-                SHOW DIR */
+                SHOW DIR <star/>
             </srai>
         </template>
     </category>
@@ -64,7 +91,7 @@
         </pattern>
         <template>
             <system>
-                ls -d <star />
+                ls -d <star />/*
             </system>
         </template>
     </category>
@@ -73,7 +100,7 @@
             MOVIE
         </pattern>
         <that>
-            show what? files, dir, movie, stage show or ahmm... gentlemen show ;)?
+            SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
         </that>
         <template>
             ok, which movie you would like to see?
@@ -84,7 +111,7 @@
             *
         </pattern>
         <that>
-            ok, which movie you would like to see?
+            OK WHICH MOVIE YOU WOULD LIKE TO SEE
         </that>
         <template>
             Ahh... <star />!! Really?? Why you want to waste time? Let's do the real work. Tell me how can I help you?
@@ -95,10 +122,10 @@
             * SHOW
         </pattern>
         <that>
-            show what? files, dir, movie, stage show or ahmm... gentlemen show ;)?
+            SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
         </that>
         <template>
-            I beg your pardon! Can you tell me again?<think><set name="show"></set></think>
+            I beg your pardon! Can you tell me again?<think><set name="show"><star/></set></think>
         </template>
     </category>
     <category>
@@ -106,7 +133,7 @@
             * SHOW
         </pattern>
         <that>
-            I beg your pardon! Can you tell me again?
+            I BEG YOUR PARDON CAN YOU TELL ME AGAIN
         </that>
         <template>
             <condition name="show">
