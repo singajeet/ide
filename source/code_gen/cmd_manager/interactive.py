@@ -10,7 +10,7 @@ from prompt_toolkit.styles import style_from_dict
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
-from UMLToCodeApp import config
+from code_gen import config
 from prompt_toolkit.token import Token
 from prompt_toolkit.enums import EditingMode
 import os
@@ -61,7 +61,7 @@ class CmdManager(object):
 
     # Add an additional key binding for toggling this flag.
     @manager.registry.add_binding(Keys.F4)
-    def _(event):
+    def _(self, event):
         " Toggle between Emacs and Vi mode. "
         cli = event.cli
 

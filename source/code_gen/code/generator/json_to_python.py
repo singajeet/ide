@@ -9,8 +9,8 @@ import ujson
 import pathlib
 from typing import Type
 from configparser import ConfigParser
-from UMLToCodeApp import config
-from UMLToCodeApp.templates import manager
+from code_gen import config
+from code_gen.templates import manager
 
 
 ############### Constants ################################

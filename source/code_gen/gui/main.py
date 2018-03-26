@@ -1,6 +1,6 @@
 import wx
 import wx.aui
-from .editor import MainFrame
+from code_gen.gui.editor import MainFrame
 
 def start_it():
     app = wx.App()

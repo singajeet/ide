@@ -16,21 +16,32 @@ RESOURCES_FOLDER_PATH_KEY = 'resources_folder_path'
 TEMPLATES_FOLDER_PATH_KEY = 'templates_folder_path'
 OVERWRITE_FILE_KEY = 'overwrite_file'
 
-UMLTOCODEAPP_PKG = 'UMLToCodeApp'
-RESOURCES_PKG = '%s.resources' % UMLTOCODEAPP_PKG
+CODE_GEN_PKG = 'code_gen'
+RESOURCES_PKG = '%s.resources' % CODE_GEN_PKG
 
-_conf_path = pathlib.Path(__file__).parent
+_base_path = pathlib.Path(__file__).parent
+_conf_path = _base_path
 _conf_file = _conf_path.joinpath(CONFIG_FILE)
 CONFIG_FILE = pathlib.Path(_conf_file).absolute()
 _config_parser = ConfigParser(interpolation=ExtendedInterpolation())
 _config_parser.read(CONFIG_FILE)
 
-APP_BASE_PATH = _config_parser.get(DEFAULT_SECTION, APP_BASE_PATH_KEY)
-OUTPUT_FOLDER_PATH = _config_parser.get(CODE_GEN_SECTION, OUTPUT_FOLDER_PATH_KEY)
-OVERWRITE_FILE = _config_parser.get(CODE_GEN_SECTION, OVERWRITE_FILE_KEY)
-INPUT_FOLDER_PATH = _config_parser.get(CODE_GEN_SECTION, INPUT_FOLDER_PATH_KEY)
-RESOURCES_FOLDER_PATH = _config_parser.get(CODE_GEN_SECTION, RESOURCES_FOLDER_PATH_KEY)
-TEMPLATES_FOLDER_PATH = _config_parser.get(CODE_GEN_SECTION, TEMPLATES_FOLDER_PATH_KEY)
+APP_BASE_PATH = str(_base_path) #_config_parser.get(DEFAULT_SECTION, APP_BASE_PATH_KEY)
+OUTPUT_FOLDER_PATH = str(pathlib.Path(_base_path,
+                                  _config_parser.get(CODE_GEN_SECTION,
+                                                     OUTPUT_FOLDER_PATH_KEY)))
+OVERWRITE_FILE = str(pathlib.Path(_base_path,
+                                  _config_parser.get(CODE_GEN_SECTION,
+                                                     OVERWRITE_FILE_KEY)))
+INPUT_FOLDER_PATH = str(pathlib.Path(_base_path,
+                                     _config_parser.get(CODE_GEN_SECTION,
+                                                        INPUT_FOLDER_PATH_KEY)))
+RESOURCES_FOLDER_PATH = str(pathlib.Path(_base_path,
+                                         _config_parser.get(CODE_GEN_SECTION,
+                                                            RESOURCES_FOLDER_PATH_KEY)))
+TEMPLATES_FOLDER_PATH = str(pathlib.Path(_base_path,
+                                         _config_parser.get(CODE_GEN_SECTION,
+                                                            TEMPLATES_FOLDER_PATH_KEY)))
 
 ############## Templates ###############################
 MODULE_TEMPLATE = 'module.j2'
@@ -40,8 +51,11 @@ FUNCTION_TEMPLATE = 'function.j2'
 
 ###############CMD Manager##########################
 KNOWLEDGE_BASE_PATH_KEY = 'knowledge_base_path'
-
 CMD_MANAGER_PATH_KEY = 'cmd_manager_path'
 CMD_MANAGER_SECTION = 'cmd_manager'
-CMD_MANAGER_PATH = _config_parser.get(CMD_MANAGER_SECTION, CMD_MANAGER_PATH_KEY)
-KNOWLEDGE_BASE_PATH = _config_parser.get(CMD_MANAGER_SECTION, KNOWLEDGE_BASE_PATH_KEY)
+CMD_MANAGER_PATH = str(pathlib.Path(_base_path,
+                                    _config_parser.get(CMD_MANAGER_SECTION,
+                                                       CMD_MANAGER_PATH_KEY)))
+KNOWLEDGE_BASE_PATH = str(pathlib.Path(_base_path,
+                                       _config_parser.get(CMD_MANAGER_SECTION,
+                                                          KNOWLEDGE_BASE_PATH_KEY)))

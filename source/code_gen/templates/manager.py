@@ -7,12 +7,12 @@
 """
 from jinja2 import Environment, PackageLoader, select_autoescape
 import pathlib
-from UMLToCodeApp import config
+from code_gen import config
 
-TEMPLATE_PATH_REL = pathlib.Path(config.TEMPLATES_FOLDER_PATH).name
-RESOURCES_PATH_REL = pathlib.Path(config.RESOURCES_FOLDER_PATH).name
+TEMPLATE_PATH_REL = pathlib.Path(config.TEMPLATES_FOLDER_PATH)
+RESOURCES_PATH_REL = pathlib.Path(config.RESOURCES_FOLDER_PATH)
 
-template_env = Environment(loader=PackageLoader(config.UMLTOCODEAPP_PKG,
+template_env = Environment(loader=PackageLoader(config.CODE_GEN_PKG,
                                                 str(pathlib.Path(RESOURCES_PATH_REL, 
                                                              TEMPLATE_PATH_REL))), 
                            autoescape=select_autoescape(['json','xml']))
