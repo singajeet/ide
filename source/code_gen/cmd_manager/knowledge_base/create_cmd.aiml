@@ -1,0 +1,66 @@
+<?xml version="1.0" ?>
+<aiml version="1.0">
+    <meta name="author" content="ajeet singh" />
+    <category>
+        <pattern>
+            CREATE
+        </pattern>
+        <template>
+            what would you like me to create... project, folder, class or something else?
+        </template>
+    </category>
+    <category>
+        <pattern>
+            _ CREATE *
+        </pattern>
+        <template>
+            <srai>
+                CREATE
+            </srai>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            FOLDER
+        </pattern>
+        <that>
+            WHAT WOULD YOU LIKE ME TO CREATE PROJECT FOLDER CLASS OR SOMETHING ELSE
+        </that>
+        <template>
+            please provide me the folder name you want to use?
+        </template>
+    </category>
+    <category>
+        <pattern>
+            *
+        </pattern>
+        <that>
+            PLEASE PROVIDE ME THE FOLDER NAME YOU WANT TO USE
+        </that>
+        <template>
+            <system>
+                mkdir <star/>
+            </system>
+            Folder created successfully.. <star/>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            FOLDER *
+        </pattern>
+        <that>
+            WHAT WOULD YOU LIKE ME TO CREATE PROJECT FOLDER CLASS OR SOMETHING ELSE
+        </that>
+        <template>
+            <system>
+                mkdir <star/>
+            </system>
+            Folder created successfully.. <star/>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            CREATE *
+        </pattern>
+    </category>
+</aiml>

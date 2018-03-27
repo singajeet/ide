@@ -126,12 +126,10 @@
         </that>
         <template>
             <think>
-                <set name="show">
-                    STAGE
-                </set>
+                <set name="show">stage</set>
             </think>
             <srai>
-                <star/> SHOW
+                SELECT SHOW
             </srai>
         </template>
     </category>
@@ -144,12 +142,10 @@
         </that>
         <template>
             <think>
-                <set name="show">
-                    STAGE
-                </set>
+                <set name="show">stage</set>
             </think>
             <srai>
-                <star/> SHOW
+                SELECT SHOW
             </srai>
         </template>
     </category>
@@ -162,12 +158,10 @@
         </that>
         <template>
             <think>
-                <set name="show">
-                    GENTLEMEN
-                </set>
+                <set name="show">gentlemen</set>
             </think>
             <srai>
-                <star/> SHOW
+                SELECT SHOW
             </srai>
         </template>
     </category>
@@ -180,18 +174,27 @@
         </that>
         <template>
             <think>
-                <set name="show">
-                    GENTELMEN
-                </set>
+                <set name="show">gentlemen</set>
             </think>
             <srai>
-                <star/> SHOW
+                SELECT SHOW
             </srai>
         </template>
     </category>
     <category>
         <pattern>
-            * SHOW
+            *
+        </pattern>
+        <that>
+            SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
+        </that>
+        <template>
+            ok, enough jokes! lets start working now...!!
+        </template>
+    </category>
+    <category>
+        <pattern>
+            SELECT SHOW
         </pattern>
         <template>
             <condition name="show">
@@ -199,7 +202,7 @@
                     Hmmm... does your wife knows about it? Let me call and tell her
                 </li>
                 <li>
-                    Ahhh... <star /> show. Would you like to go with your boss?
+                    Ahhh... <get name="show" /> show. Would you like to go with your boss?
                 </li>
             </condition>
         </template>
