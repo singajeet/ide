@@ -119,22 +119,80 @@
     </category>
     <category>
         <pattern>
-            * SHOW
+            STAGE *
         </pattern>
         <that>
             SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
         </that>
         <template>
-            I beg your pardon! Can you tell me again?<think><set name="show"><star/></set></think>
+            <think>
+                <set name="show">
+                    STAGE
+                </set>
+            </think>
+            <srai>
+                <star/> SHOW
+            </srai>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            STAGE
+        </pattern>
+        <that>
+            SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
+        </that>
+        <template>
+            <think>
+                <set name="show">
+                    STAGE
+                </set>
+            </think>
+            <srai>
+                <star/> SHOW
+            </srai>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            GENTLEMEN *
+        </pattern>
+        <that>
+            SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
+        </that>
+        <template>
+            <think>
+                <set name="show">
+                    GENTLEMEN
+                </set>
+            </think>
+            <srai>
+                <star/> SHOW
+            </srai>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            GENTLEMEN
+        </pattern>
+        <that>
+            SHOW WHAT FILES DIR MOVIE STAGE SHOW OR AHMM GENTLEMEN SHOW
+        </that>
+        <template>
+            <think>
+                <set name="show">
+                    GENTELMEN
+                </set>
+            </think>
+            <srai>
+                <star/> SHOW
+            </srai>
         </template>
     </category>
     <category>
         <pattern>
             * SHOW
         </pattern>
-        <that>
-            I BEG YOUR PARDON CAN YOU TELL ME AGAIN
-        </that>
         <template>
             <condition name="show">
                 <li value="gentlemen">

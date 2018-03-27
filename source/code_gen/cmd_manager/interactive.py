@@ -53,7 +53,8 @@ class CmdManager(object):
     def start(self):
         """Starts the loop to take inputs from cmd line
         """
-        self._kernel.learn('%s*.aiml' % config.KNOWLEDGE_BASE_PATH)
+        print('Trying to load following path: %s/*.aiml' % config.KNOWLEDGE_BASE_PATH)
+        self._kernel.learn('%s/*.aiml' % config.KNOWLEDGE_BASE_PATH)
         text = ''
         while text.lower() not in ['exit', 'quit']:
             text = prompt(get_prompt_tokens=self.get_prompt_tokens, style=CmdManager.cmd_style, key_bindings_registry=CmdManager.manager.registry, get_bottom_toolbar_tokens=self.get_bottom_toolbar_tokens)
