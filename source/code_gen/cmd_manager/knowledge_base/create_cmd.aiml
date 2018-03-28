@@ -3,6 +3,47 @@
     <meta name="author" content="ajeet singh" />
     <category>
         <pattern>
+            * CREATE * FOLDER * NAME *
+        </pattern>
+        <template>
+            <system>
+                mkdir <star index="4"/>
+            </system>
+            Folder created successfully.. <star index="4"/>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            * CREATE * FOLDER *
+        </pattern>
+        <template>
+            <system>
+                mkdir <star index="3"/>
+            </system>
+            Folder created successfully.. <star index="3"/>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            * CREATE FOLDER *
+        </pattern>
+        <template>
+            <system>
+                mkdir <star index="2"/>
+            </system>
+            Folder created successfully.. <star index="2"/>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            * CREATE * FOLDER
+        </pattern>
+        <template>
+            please provide me the folder name you want to use?
+        </template>
+    </category>
+    <category>
+        <pattern>
             CREATE
         </pattern>
         <template>
@@ -11,7 +52,7 @@
     </category>
     <category>
         <pattern>
-            _ CREATE *
+            * CREATE *
         </pattern>
         <template>
             <srai>
@@ -22,6 +63,17 @@
     <category>
         <pattern>
             FOLDER
+        </pattern>
+        <that>
+            WHAT WOULD YOU LIKE ME TO CREATE PROJECT FOLDER CLASS OR SOMETHING ELSE
+        </that>
+        <template>
+            please provide me the folder name you want to use?
+        </template>
+    </category>
+    <category>
+        <pattern>
+            * FOLDER
         </pattern>
         <that>
             WHAT WOULD YOU LIKE ME TO CREATE PROJECT FOLDER CLASS OR SOMETHING ELSE
@@ -60,7 +112,30 @@
     </category>
     <category>
         <pattern>
-            CREATE *
+            _ FOLDER *
         </pattern>
+        <that>
+            WHAT WOULD YOU LIKE ME TO CREATE PROJECT FOLDER CLASS OR SOMETHING ELSE
+        </that>
+        <template>
+            <system>
+                mkdir <star index="2"/>
+            </system>
+            Folder created successfully.. <star index="2"/>
+        </template>
+    </category>
+    <category>
+        <pattern>
+            _ FOLDER * NAME *
+        </pattern>
+        <that>
+            WHAT WOULD YOU LIKE ME TO CREATE PROJECT FOLDER CLASS OR SOMETHING ELSE
+        </that>
+        <template>
+            <system>
+                mkdir <star index="3"/>
+            </system>
+            Folder created successfully.. <star index="3"/>
+        </template>
     </category>
 </aiml>
