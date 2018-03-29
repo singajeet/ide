@@ -79,9 +79,8 @@ class BaseCategory(object):
 
     @prefix.setter
     def prefix(self, value):
-        if value is not None:
-            if value != self._prefix:
-                self._prefix = value
+        if value != self._prefix:
+            self._prefix = value
 
     @property
     def sufix(self):
@@ -92,9 +91,8 @@ class BaseCategory(object):
 
     @sufix.setter
     def sufix(self, value):
-        if value is not None:
-            if value != self._sufix:
-                self._sufix = value
+        if value != self._sufix:
+            self._sufix = value
 
     @property
     def ref_that(self):
@@ -105,9 +103,8 @@ class BaseCategory(object):
 
     @ref_that.setter
     def ref_that(self, value):
-        if value is not None:
-            if value != self._ref_that:
-                self._ref_that = value
+        if value != self._ref_that:
+            self._ref_that = value
 
     @property
     def ref_topic(self):
@@ -118,9 +115,8 @@ class BaseCategory(object):
 
     @ref_topic.setter
     def ref_topic(self, value):
-        if value is not None:
-            if value != self._ref_topic:
-                self._ref_topic = value
+        if value != self._ref_topic:
+            self._ref_topic = value
 
     @property
     def is_system_cmd(self):
@@ -144,9 +140,8 @@ class BaseCategory(object):
 
     @template.setter
     def template(self, value):
-        if value is not None:
-            if value != self._template:
-                self._template = value
+        if value != self._template:
+            self._template = value
 
     @property
     def system_cmd(self):
@@ -157,9 +152,8 @@ class BaseCategory(object):
 
     @system_cmd.setter
     def system_cmd(self, value):
-        if value is not None:
-            if value != self._system_cmd:
-                self._system_cmd = value
+        if value != self._system_cmd:
+            self._system_cmd = value
 
     @property
     def forward_to_category_id(self):
@@ -170,9 +164,8 @@ class BaseCategory(object):
 
     @forward_to_category_id.setter
     def forward_to_category_id(self, value):
-        if value is not None:
-            if value != self._forward_to_category_id:
-                self._forward_to_category_id = value
+        if value != self._forward_to_category_id:
+            self._forward_to_category_id = value
 
     @property
     def active(self):
@@ -284,7 +277,7 @@ class BaseCategory(object):
                     else:
                         return False
             elif self.pattern is not None:
-                _query = ('SELECT count(1) as cnt FROM aiml_categories WHERE pattern = "%s"')
+                _query = ('SELECT count(1) as cnt FROM aiml_categories WHERE pattern = %s')
                 _cursor = self._connection.cursor(buffered=True)
                 _cursor.execute(_query, (self.pattern,))
                 for (cnt,) in _cursor:
