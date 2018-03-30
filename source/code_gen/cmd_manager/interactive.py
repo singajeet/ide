@@ -10,7 +10,7 @@ from prompt_toolkit.styles import style_from_dict
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
-from code_gen import config
+from common import config
 from prompt_toolkit.token import Token
 from prompt_toolkit.enums import EditingMode
 import os

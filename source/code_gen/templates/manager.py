@@ -7,7 +7,7 @@
 """
 from jinja2 import Environment, PackageLoader, select_autoescape
 import pathlib
-from code_gen import config
+from common import config
 
 TEMPLATE_PATH_REL = pathlib.Path(config.TEMPLATES_FOLDER_PATH)
 RESOURCES_PATH_REL = pathlib.Path(config.RESOURCES_FOLDER_PATH)

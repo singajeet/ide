@@ -9,7 +9,7 @@ import ujson
 import pathlib
 from typing import Type
 from configparser import ConfigParser
-from code_gen import config
+from common import config
 from code_gen.templates import manager
 
 

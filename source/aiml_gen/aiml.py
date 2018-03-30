@@ -9,19 +9,24 @@ from mysql.connector import MySQLConnection
 
 
 
-class BaseCategory(object):
-    """A base category class which represents AIML category tag
-"""
+class Category(object):
+    """A category class which represents AIML category tag
+    """
 
-    def __init__(self, connection: Type[MySQLConnection], category_id: int=None, pattern: str=None, template: str=None, is_system_cmd: bool=False):
+    def __init__(self, connection: Type[MySQLConnection], category_id:\
+                 int=None, pattern: str=None, template: str=None,\
+                 is_system_cmd: bool=False):
         """Default constructor for an category
 
         Args:
             connection (MySQLConnection): an open connection to mysqldb
-            category_id (int): a unique id for an category. if it is valid, object will be liaded from db
+            category_id (int): a unique id for an category. if it is valid,\
+                    object will be liaded from db
             pattern (str): A pattern for which a template should be returned
-            template (str): a template of string form that will be returned if the pattern matches with user provided text
-            is_system_cmd (bool): flag to mark template provided as a system cmd. If true, the template will be executed as sys cmd
+            template (str): a template of string form that will be returned if\
+                    the pattern matches with user provided text
+            is_system_cmd (bool): flag to mark template provided as a system\
+            cmd. If true, the template will be executed as sys cmd
 
         """
         self._connection = connection
@@ -32,7 +37,7 @@ class BaseCategory(object):
         if pattern is not None:
             self._pattern = pattern
         self._prefix = None
-        self._sufix = None
+        self._suffix = None
         self._ref_that = None
         self._ref_topic = None
         self._is_system_cmd = is_system_cmd
@@ -44,23 +49,68 @@ class BaseCategory(object):
             self._template = template
         self._forward_to_category_id = -1
         self._active = False
-        self._insert_query = ('insert into aiml_categories (pattern, prefix, sufix, ref_that, ref_topic, is_system_cmd, system_cmd, template, forward_to_category_id, active) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)')
-        self._update_query = ('update aiml_categories set pattern = %s, prefix = %s, sufix = %s, ref_that = %s, ref_topic = %s, is_system_cmd = %s, system_cmd = %s, template = %s, forward_to_category_id = %s, active = %s where category_id = %s')
-        self._select_query_by_id = ('SELECT category_id, pattern, prefix, sufix, ref_that, ref_topic, is_system_cmd, system_cmd, template, forward_to_category_id, active FROM aiml_categories WHERE category_id = %s')
-        self._select_query_by_pattern = ('SELECT category_id, pattern, prefix, sufix, ref_that, ref_topic, is_system_cmd, system_cmd, template, forward_to_category_id, active FROM aiml_categories WHERE pattern = %s')
+        self._insert_query = (\
+                              'INSERT INTO aiml_categories\
+                              (pattern, prefix, suffix, ref_that, ref_topic,\
+                              is_system_cmd, system_cmd, template,\
+                              forward_to_category_id, active)\
+                              VALUES\
+                              (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'\
+                             )
+        self._update_query = (\
+                              'UPDATE aiml_categories\
+                              SET pattern = %s,\
+                              prefix = %s,\
+                              suffix = %s,\
+                              ref_that = %s,\
+                              ref_topic = %s,\
+                              is_system_cmd = %s,\
+                              system_cmd = %s,\
+                              template = %s,\
+                              forward_to_category_id = %s,\
+                              active = %s\
+                              WHERE category_id = %s'\
+                             )
+        self._select_query_by_id = (\
+                                    'SELECT\
+                                    category_id, pattern, prefix,\
+                                    suffix, ref_that, ref_topic, is_system_cmd,\
+                                    system_cmd, template,
+                                    forward_to_category_id, active\
+                                    FROM\
+                                    aiml_categories\
+                                    WHERE\
+                                    category_id = %s'\
+                                   )
+        self._select_query_by_pattern = (\
+                                         'SELECT\
+                                         category_id, pattern, prefix,\
+                                         suffix, ref_that, ref_topic,
+                                         is_system_cmd, system_cmd, template,\
+                                         forward_to_category_id, active\
+                                         FROM\
+                                         aiml_categories\
+                                         WHERE\
+                                         pattern = %s'\
+                                        )
+        self._remove_query = (\
+                              'DELETE FROM aiml_categories\
+                              WHERE\
+                              category_id = %s'\
+                             )
         self._load_if_exists_in_db()
 
     @property
     def category_id(self):
         """
-        category_id desc
+        A unique assigned to an category
         """
         return self._category_id
 
     @property
     def pattern(self):
         """
-        pattern desc
+        Pattern for current category, this will be matched with user input
         """
         return self._pattern
 
@@ -73,7 +123,7 @@ class BaseCategory(object):
     @property
     def prefix(self):
         """
-        prefix desc
+        A wildcard (*,^,#,_) or other words to use as prefix for pattern
         """
         return self._prefix
 
@@ -83,21 +133,21 @@ class BaseCategory(object):
             self._prefix = value
 
     @property
-    def sufix(self):
+    def suffix(self):
         """
-        sufix desc
+        Same as prefix but will be applied as suffix to pattern
         """
-        return self._sufix
+        return self._suffix
 
-    @sufix.setter
-    def sufix(self, value):
-        if value != self._sufix:
-            self._sufix = value
+    @suffix.setter
+    def suffix(self, value):
+        if value != self._suffix:
+            self._suffix = value
 
     @property
     def ref_that(self):
         """
-        ref_that desc
+        AIML that 
         """
         return self._ref_that
 
