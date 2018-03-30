@@ -76,5 +76,6 @@ AIML_DB_PORT = _config_parser.get(AIML_SECTION, AIML_DB_PORT_KEY)
 AIML_FILES_OUTPUT_PATH_KEY = 'aiml_files_output_path'
 AIML_FILES_OUTPUT_PATH = _config_parser.get(AIML_SECTION,
                                             AIML_FILES_OUTPUT_PATH_KEY)
-
+AIML_DB_KEY = 'aiml_db'
+AIML_DB = _config_parser.get(AIML_SECTION, AIML_DB_KEY)
 

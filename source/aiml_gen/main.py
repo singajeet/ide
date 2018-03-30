@@ -12,10 +12,10 @@ from prompt_toolkit.keys import Keys
 from common import config
 from prompt_toolkit.token import Token
 from prompt_toolkit.enums import EditingMode
-from aiml_gen.aiml_category import BaseCategory
+from aiml_gen.aiml import Category
 import os
 import pathlib
-
+import mysql.connector
 
 class AimlGenerator(object):
     """Class to generate AIML files based on the input provided by user
@@ -46,8 +46,12 @@ class AimlGenerator(object):
     def __init__(self):
         """Init the AIML generator
         """
-        self._db_username = config.AIML_DB_USER
+        self._db_user = config.AIML_DB_USER
         self._db_password = config.AIML_DB_PASSWORD
+        self._db_host = config.AIML_DB_HOST
+        self._db_port = config.AIML_DB_PORT
+        self._database = config.AIML_DB
+        self._connection = mysql.connector.connect(host=self._db_host, port=self._db_port, user=self._db_user, password=self._db_password, database=self._database)
         self._current_pattern = None
         self._current_template = None
 
@@ -91,7 +95,7 @@ class AimlGenerator(object):
         current_cmd = 'DEFAULT'
         current_prompt_tokens_callback = self.get_default_prompt_tokens
         while cmd.lower() not in ['quit', 'exit']:
-            cmd = prompt(get_prompt_tokens=self.current_prompt_tokens_callback, style=AimlGenerator.cmd_style)
+            cmd = prompt(get_prompt_tokens=current_prompt_tokens_callback, style=AimlGenerator.cmd_style)
             if current_cmd == 'DEFAULT': #not in any command mode, check which command is entered by user
                 if cmd.lower() == 'new cat' or cmd.lower() == 'new category':
                     current_prompt_tokens_callback = self.get_pattern_prompt_tokens
@@ -105,7 +109,7 @@ class AimlGenerator(object):
                 current_cmd = 'CAT+PAT'
                 current_prompt_tokens_callback = self.get_template_prompt_tokens
             elif current_cmd == 'CAT+PAT': #In category-add cmd mode with pattern already provided, next input is a template
-                self._current_template = cmd.upper()
+                self._current_template = cmd
                 current_cmd = 'DEFAULT'
                 current_prompt_tokens_callback = self.get_default_prompt_tokens
                 #we got both category and template, so saving it now
@@ -119,7 +123,8 @@ class AimlGenerator(object):
     def save_category(self):
         """Save the current category pattern and template in database
         """
-        pass
+        category = Category(self._connection, pattern=self._current_pattern, template=self._current_template)
+        category.save()
 
 if __name__ == '__main__':
     gen = AimlGenerator()

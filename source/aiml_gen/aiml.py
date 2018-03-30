@@ -1,5 +1,5 @@
 """
-.. module:: categories
+.. module:: aiml
    :synopsis: class objects representing an AIML category tags
    :platform: Any
 .. moduleauthor:: Ajeet Singh
@@ -75,8 +75,7 @@ class Category(object):
                                     'SELECT\
                                     category_id, pattern, prefix,\
                                     suffix, ref_that, ref_topic, is_system_cmd,\
-                                    system_cmd, template,
-                                    forward_to_category_id, active\
+                                    system_cmd, template, forward_to_category_id, active\
                                     FROM\
                                     aiml_categories\
                                     WHERE\
@@ -85,8 +84,7 @@ class Category(object):
         self._select_query_by_pattern = (\
                                          'SELECT\
                                          category_id, pattern, prefix,\
-                                         suffix, ref_that, ref_topic,
-                                         is_system_cmd, system_cmd, template,\
+                                         suffix, ref_that, ref_topic, is_system_cmd, system_cmd, template,\
                                          forward_to_category_id, active\
                                          FROM\
                                          aiml_categories\
@@ -147,7 +145,7 @@ class Category(object):
     @property
     def ref_that(self):
         """
-        AIML that 
+        AIML that
         """
         return self._ref_that
 
@@ -238,7 +236,7 @@ class Category(object):
         """
         if self._connection is not None:
             _cursor = self._connection.cursor(buffered=True)
-            _cursor.execute(self._insert_query, (self.pattern, self.prefix, self.sufix, self.ref_that, self.ref_topic, self.is_system_cmd, self.system_cmd, self.template, self.forward_to_category_id, self.active))
+            _cursor.execute(self._insert_query, (self.pattern, self.prefix, self.suffix, self.ref_that, self.ref_topic, self.is_system_cmd, self.system_cmd, self.template, self.forward_to_category_id, self.active))
             self._category_id = _cursor.lastrowid
             self._connection.commit()
             return True
@@ -254,7 +252,7 @@ class Category(object):
         """
         if self._connection is not None and self.category_id is not None:
             _cursor = self._connection.cursor(buffered=True)
-            _cursor.execute(self._update_query, (self.pattern, self.prefix, self.sufix, self.ref_that, self.ref_topic, self.is_system_cmd, self.system_cmd, self.template, self.forward_to_category_id, self.active, self.category_id))
+            _cursor.execute(self._update_query, (self.pattern, self.prefix, self.suffix, self.ref_that, self.ref_topic, self.is_system_cmd, self.system_cmd, self.template, self.forward_to_category_id, self.active, self.category_id))
             self._connection.commit()
             return True
         else:
@@ -270,10 +268,10 @@ class Category(object):
         if self._connection is not None and self.category_id is not None:
             _cursor = self._connection.cursor(buffered=True)
             _cursor.execute(self._select_query_by_id, (self.category_id,))
-            for (category_id, pattern, prefix, sufix, ref_that, ref_topic, is_system_cmd, system_cmd, template, forward_to_category_id, active) in _cursor:
+            for (category_id, pattern, prefix, suffix, ref_that, ref_topic, is_system_cmd, system_cmd, template, forward_to_category_id, active) in _cursor:
                 self.pattern = pattern
                 self.prefix = prefix
-                self.sufix = sufix
+                self.suffix = suffix
                 self.ref_that = ref_that
                 self.ref_topic = ref_topic
                 self.is_system_cmd = is_system_cmd
@@ -295,10 +293,10 @@ class Category(object):
         if self._connection is not None and self.pattern is not None:
             _cursor = self._connection.cursor(buffered=True)
             _cursor.execute(self._select_query_by_pattern, (self.pattern,))
-            for (category_id, pattern, prefix, sufix, ref_that, ref_topic, is_system_cmd, system_cmd, template, forward_to_category_id, active) in _cursor:
+            for (category_id, pattern, prefix, suffix, ref_that, ref_topic, is_system_cmd, system_cmd, template, forward_to_category_id, active) in _cursor:
                 self._category_id = category_id
                 self.prefix = prefix
-                self.sufix = sufix
+                self.suffix = suffix
                 self.ref_that = ref_that
                 self.ref_topic = ref_topic
                 self.is_system_cmd = is_system_cmd
