@@ -6,15 +6,14 @@
 """
 from prompt_toolkit.shortcuts import prompt
 from prompt_toolkit.styles import style_from_dict
-from prompt_toolkit.filters import Condition
 from prompt_toolkit.key_binding.manager import KeyBindingManager
-from prompt_toolkit.keys import Keys
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.history import FileHistory
+from prompt_toolkit.interface import AbortAction
+from prompt_toolkit.contrib.completers import WordCompleter
 from common import config
 from prompt_toolkit.token import Token
-from prompt_toolkit.enums import EditingMode
 from aiml_gen.aiml import Category
-import os
-import pathlib
 import mysql.connector
 
 class AimlGenerator(object):
@@ -51,9 +50,31 @@ class AimlGenerator(object):
         self._db_host = config.AIML_DB_HOST
         self._db_port = config.AIML_DB_PORT
         self._database = config.AIML_DB
-        self._connection = mysql.connector.connect(host=self._db_host, port=self._db_port, user=self._db_user, password=self._db_password, database=self._database)
+        self._connection = mysql.connector.connect(host=self._db_host,\
+                port=self._db_port, user=self._db_user,\
+                password=self._db_password, database=self._database)
         self._current_pattern = None
         self._current_template = None
+        self._cmd_history = FileHistory('.ide_aiml_gen.history')
+        self._cmd_completer = self.get_cmd_completer()
+
+    def get_cmd_completer(self):
+        """Returns the list of words to use with completer
+        """
+        return WordCompleter(['New',
+                'Category',
+                'Edit',
+                'Delete',
+                'Exit',
+                'Quit'],
+                meta_dict = {
+                    'New': 'Creates a new category and asks for pattern & template',
+                    'Edit': 'Edit an exisiting category',
+                    'Delete': 'Delete category from the system',
+                    'Exit': 'Exit from this application',
+                    'Quit': 'Quit from this application'
+                    },
+                ignore_case=True)
 
     def get_default_prompt_tokens(self, cli):
         """Return text for prompt tokens
@@ -95,7 +116,16 @@ class AimlGenerator(object):
         current_cmd = 'DEFAULT'
         current_prompt_tokens_callback = self.get_default_prompt_tokens
         while cmd.lower() not in ['quit', 'exit']:
-            cmd = prompt(get_prompt_tokens=current_prompt_tokens_callback, style=AimlGenerator.cmd_style)
+            cmd = prompt(
+                    get_prompt_tokens=current_prompt_tokens_callback,
+                    style=AimlGenerator.cmd_style,
+                    history=self._cmd_history,
+                    enable_history_search=True,
+                    on_abort=AbortAction.RETRY,
+                    auto_suggest=AutoSuggestFromHistory(),
+                    completer=self._cmd_completer,
+                    display_completions_in_columns=True
+                    )
             if current_cmd == 'DEFAULT': #not in any command mode, check which command is entered by user
                 if cmd.lower() == 'new cat' or cmd.lower() == 'new category':
                     current_prompt_tokens_callback = self.get_pattern_prompt_tokens
