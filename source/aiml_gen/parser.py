@@ -4,10 +4,6 @@
    :synopsis: Utility to generate AIML files
 .. moduleauthor:: ajeet singh
 """
-from common import config
-from aiml_gen.aiml import Category
-import mysql.connector
-
 
 DESCRIPTION = 'DESCRIPTION'
 TOKEN_CALLBACK = 'TOKEN_CALLBACK'
@@ -33,7 +29,8 @@ class CommandParser(object):
         self._is_command_completed = None
         self._command_registry = {}
 
-    def register_command(self, cmd, description=None, get_prompt_tokens_callback=None, cmd_processor_callback=None, p_options={}, p_kw_options={}):
+    def register_command(self, cmd, description=None, get_prompt_tokens_callback=None,\
+            cmd_processor_callback=None, p_options={}, p_kw_options={}):
         """docstring for register_command"""
         if self._command_registry is None:
             self._command_registry = {}
@@ -59,7 +56,8 @@ class CommandParser(object):
     def register_sub_command(self, cmd, sub_cmd, description=None, get_prompt_tokens_callback=None):
         """docstring for register_sub_command"""
         if self._command_registry is None:
-            raise Exception('Command registry is not yet initialized. Atleast one command needs to registered to init the command registry')
+            raise Exception('Command registry is not yet initialized. Atleast one command needs \
+                    to registered to init the command registry')
         cmd = cmd.upper()
         sub_cmd = sub_cmd.upper()
         if self._command_registry.__contains__(cmd):
@@ -90,7 +88,7 @@ class CommandParser(object):
                 if not cmds_list.__contains__(sub_cmd_name):
                     cmds_list.append(sub_cmd_name)
                     cmds_meta_dict[sub_cmd_name] = sub_cmd[DESCRIPTION]
-        return WordCompletor(cmds_list, meta_dict=cmds_meta_dict, ignore_case=True)
+        return (cmds_list, cmds_meta_dict)
 
     #=========== Begin Commands ============#
 
@@ -264,7 +262,7 @@ class CommandParser(object):
         if self.sub_cmd_exists(cmd_name, sub_cmd_name):
             sub_cmd = self.get_sub_cmd(cmd_name, sub_cmd_name)
             if sub_cmd is not None:
-                return cmd[TOKEN_CALLBACK]
+                return sub_cmd[TOKEN_CALLBACK]
         return None
 
     #========== End Sub Commands =============#
@@ -298,7 +296,7 @@ class CommandParser(object):
                             (len(cmd_tokens) >= 3 and\
                             cmd_tokens[2] == '='):
                         parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'CMD')
-                        return cmd
+                        return parsed_cmd
                     else:
                         parsed_cmd[SUB_CMD] = next_token.upper()
                         parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'SUB_CMD')
@@ -332,14 +330,14 @@ class CommandParser(object):
                 elif next_token.startswith('--'):
                     if self.cmd_has_option(cmd_name, next_token):
                         options[next_token] = True
-                elif next_token.find('=') > 0:
+                elif next_token.find('=') >= 0:
                     kv_token = next_token.split('=')
                     if self.cmd_has_kw_option(cmd_name, kv_token[0]):
                         #SCENARIO: kw= val i.e, space btwn equal(=) sign and 'val'
                         #kv_token[1] will be empty
                         if kv_token[1] == '':
                             #so next token should be taken from opt_tokens and skip one loop
-                            kw_options[kv_token[0]] = opt_tokens[i+1] if (i+1) < len(opt_tokens) else None
+                            kw_options[kv_token[0]] = opt_tokens[i+1].upper() if (i+1) < len(opt_tokens) else None
                             skip = 1
                         else:
                             kw_options[kv_token[0]] = kv_token[1]
@@ -350,13 +348,13 @@ class CommandParser(object):
                         if (i+2) < len(opt_tokens) and opt_tokens[i+2] is not None:
                             opt_val = opt_tokens[i+2].upper() #i+1 is an = sign
                             kw_options[opt_key] = opt_val
-                            skip = 2 #skip option_name and equal to sign
+                            skip = 2 #skip equal to sign and opt_val
                 #SCENARIO: kw =val i.e., space btwn kw and '=' sign
-                elif (i+1) < len(opt_tokens) and opt_tokens[i+1].find('=') > 0:
+                elif (i+1) < len(opt_tokens) and opt_tokens[i+1].find('=') >= 0:
                     opt_key = next_token
                     if self.cmd_has_kw_option(cmd_name, opt_key):
                         opt_val = opt_tokens[i+1].split('=')
-                        kw_options[opt_key] = opt_val[1]
+                        kw_options[opt_key] = opt_val[1].upper()
                         skip = 1
             parsed_cmd[OPTIONS] = options
             parsed_cmd[KW_OPTIONS] = kw_options
