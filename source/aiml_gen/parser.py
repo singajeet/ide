@@ -48,11 +48,11 @@ class CommandParser(object):
             cmd_record[SUB_COMMANDS] = {}
             options = {}
             for opt, val in p_options.items():
-                options[opt.upper()] = val
+                options[opt.upper()] = val.upper()
             cmd_record[OPTIONS] = options
             kw_options = {}
             for opt, val in p_kw_options.items():
-                kw_options[opt.upper()] = val
+                kw_options[opt.upper()] = val.upper()
             cmd_record[KW_OPTIONS] = kw_options
             self._command_registry[cmd] = cmd_record
 
@@ -335,7 +335,14 @@ class CommandParser(object):
                 elif next_token.find('=') > 0:
                     kv_token = next_token.split('=')
                     if self.cmd_has_kw_option(cmd_name, kv_token[0]):
-                        kw_options[kv_token[0]] = kv_token[1]
+                        #SCENARIO: kw= val i.e, space btwn equal(=) sign and 'val'
+                        #kv_token[1] will be empty
+                        if kv_token[1] == '':
+                            #so next token should be taken from opt_tokens and skip one loop
+                            kw_options[kv_token[0]] = opt_tokens[i+1] if (i+1) < len(opt_tokens) else None
+                            skip = 1
+                        else:
+                            kw_options[kv_token[0]] = kv_token[1]
                 elif (i+1) < len(opt_tokens) and opt_tokens[i+1] == '=':
                     opt_key = next_token
                     if self.cmd_has_kw_option(cmd_name, opt_key):
@@ -344,6 +351,13 @@ class CommandParser(object):
                             opt_val = opt_tokens[i+2].upper() #i+1 is an = sign
                             kw_options[opt_key] = opt_val
                             skip = 2 #skip option_name and equal to sign
+                #SCENARIO: kw =val i.e., space btwn kw and '=' sign
+                elif (i+1) < len(opt_tokens) and opt_tokens[i+1].find('=') > 0:
+                    opt_key = next_token
+                    if self.cmd_has_kw_option(cmd_name, opt_key):
+                        opt_val = opt_tokens[i+1].split('=')
+                        kw_options[opt_key] = opt_val[1]
+                        skip = 1
             parsed_cmd[OPTIONS] = options
             parsed_cmd[KW_OPTIONS] = kw_options
             return parsed_cmd
