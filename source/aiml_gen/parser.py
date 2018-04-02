@@ -1,0 +1,344 @@
+"""
+.. module:: main
+   :platform: Any
+   :synopsis: Utility to generate AIML files
+.. moduleauthor:: ajeet singh
+"""
+from common import config
+from aiml_gen.aiml import Category
+import mysql.connector
+
+
+DESCRIPTION = 'DESCRIPTION'
+TOKEN_CALLBACK = 'TOKEN_CALLBACK'
+PROCESSOR_CALLBACK = 'PROCESSOR_CALLBACK'
+SUB_COMMANDS = 'SUB_COMMANDS'
+MAIN_CMD = 'MAIN_CMD'
+SUB_CMD = 'SUB_CMD'
+OPTIONS = 'OPTIONS'
+OPTION = 'OPTION'
+KW_OPTIONS = 'KW_OPTIONS'
+KW_OPTION = 'KW_OPTION'
+
+
+class CommandParser(object):
+    """Parser for parsing line string provided to this class based on the cmds registered
+    """
+
+    def __init__(self):
+        """Init the AIML generator
+        """
+        self._current_cmd = None
+        self._current_sub_cmd = None
+        self._is_command_completed = None
+        self._commands_registry = {}
+
+    def register_command(self, cmd, description=None, get_prompt_tokens_callback=None, cmd_processor_callback=None, options={}, kw_options={}):
+        """docstring for register_command"""
+        if self._command_registry is None:
+            self._command_registry = {}
+        if cmd is not None:
+            cmd = cmd.upper()
+            if self._command_registry.__contains__(cmd):
+                self._command_registry.pop(cmd)
+            cmd_record = {}
+            cmd_record[DESCRIPTION] = description
+            cmd_record[TOKEN_CALLBACK] = get_prompt_tokens_callback
+            cmd_record[PROCESSOR_CALLBACK] = cmd_processor_callback
+            cmd_record[SUB_COMMANDS] = {}
+            cmd_record[OPTIONS] = options
+            cmd_recors[KW_OPTIONS] = kw_options
+            self._command_registry[cmd] = cmd_record
+
+    def register_sub_command(self, cmd, sub_cmd, description=None, get_prompt_tokens_callback=None):
+        """docstring for register_sub_command"""
+        if self._command_registry is None:
+            raise Exception('Command registry is not yet initialized. Atleast one command needs to registered to init the command registry')
+        cmd = cmd.upper()
+        if self._command_registry.__contains__(cmd):
+            cmd_record = self._command_registry[cmd]
+            sub_cmds = cmd_record[SUB_COMMANDS]
+            if sub_cmds.__contains__(sub_cmd):
+                sub_cmds.pop(sub_cmd)
+            sub_cmd_record = {}
+            sub_cmd_record[DESCRIPTION] = description
+            sub_cmd_record[TOKEN_CALLBACK] = get_prompt_tokens_callback
+            sub_cmds[sub_cmd] = sub_cmd_record
+        else:
+            raise Exception('Main command [%s] is not registered yet' % cmd)
+
+    def get_cmd_completer(self):
+        """Returns the list of words to use with completer
+        """
+        cmds_list = []
+        cmds_meta_dict = {}
+        for cmd_name, cmd in self._commands_registry.items():
+            if cmds_list.__contains__(cmd_name):
+                cmds_list.pop(cmd_name)
+                cmds_meta_dict.pop(cmd_name)
+            cmds_list.append(cmd_name)
+            cmds_meta_dict[cmd_name] = cmd[DESCRIPTION]
+            sub_cmds = cmd[SUB_COMMANDS]
+            for sub_cmd_name, sub_cmd in sub_cmds.items():
+                if not cmds_list.__contains__(sub_cmd_name):
+                    cmds_list.append(sub_cmd_name)
+                    cmds_meta_dict[sub_cmd_name] = sub_cmd[DESCRIPTION]
+        return WordCompletor(cmds_list, meta_dict=cmds_meta_dict, ignore_case=True)
+
+    #=========== Begin Commands ============#
+
+    def get_cmds(self):
+        """docstring for get_cmds"""
+        if self._commands_registry is None:
+            return None
+        return self._commands_registry
+
+    def cmd_exists(self, cmd_name):
+        """docstring for cmd_exists"""
+        if self._commands_registry is None:
+            return False
+        cmd_name = cmd_name.upper()
+        if self._commands_registry.__contains__(cmd_name):
+            return True
+        else:
+            return False
+
+    def get_cmd(self, cmd_name):
+        """docstring for get_cmd"""
+        cmd_name = cmd_name.upper()
+        if self.cmd_exists(cmd_name):
+            return self.get_cmds()[cmd_name]
+        return None
+
+    def get_cmd_description(self, cmd_name):
+        """docstring for get_cmd_details"""
+        cmd = self.get_cmd(cmd_name)
+        if cmd is not None:
+            return cmd[DESCRIPTION]
+        else:
+            return None
+
+    def get_cmd_prompt_token_callback(self, cmd_name):
+        """docstring for get_cmd_prompt_token_callback"""
+        if self.cmd_exists(cmd_name):
+            cmd = self.get_cmd(cmd_name)
+            return cmd[TOKEN_CALLBACK]
+        else:
+            return None
+
+    def get_cmd_processor_callback(self, cmd_name):
+        """docstring for get_cmd_processor_callback"""
+        if self.cmd_exists(cmd_name):
+            cmd = self.get_cmd(cmd_name)
+            return cmd[PROCESSOR_CALLBACK]
+        else:
+            return None
+
+    def cmd_has_options(self, cmd_name):
+        """docstring for cmd_has_options"""
+        if self.cmd_exists(cmd_name):
+            cmd = self.get_cmd(cmd_name)
+            if cmd.__contains__(OPTIONS):
+                opts = cmd[OPTIONS]
+                if len(opts) > 0:
+                    return True
+        return False
+
+    def cmd_has_kw_options(self, cmd_name):
+        """docstring for cmd_has_kw_options"""
+        if self.cmd_exists(cmd_name):
+            cmd = self.get_cmd(cmd_name)
+            if cmd.__contains__(KW_OPTIONS):
+                opts = cmd[KW_OPTIONS]
+                if len(opts) > 0:
+                    return True
+        return False
+
+    def get_cmd_options(self, cmd_name):
+        """docstring for get_cmd_options"""
+        if self.cmd_has_options(cmd_name):
+            cmd = self.get_cmd(cmd_name)
+            return cmd[OPTIONS]
+        return None
+
+    def get_cmd_kw_options(self, cmd_name):
+        """docstring for get_cmd_options"""
+        if self.cmd_has_kw_options(cmd_name):
+            cmd = self.get_cmd(cmd_name)
+            return cmd[KW_OPTIONS]
+        return None
+
+    def cmd_has_option(self, cmd_name, opt_name):
+        """docstring for has_cmd_option"""
+        opt_name = opt_name.upper()
+        if self.cmd_has_options(cmd_name):
+            opts = self.get_cmd_options(cmd_name)
+            if opts.__contains__(opt_name):
+                return True
+        return False
+
+    def cmd_has_kw_option(self, cmd_name, opt_name):
+        """docstring for cmd_has_kw_option"""
+        opt_name = opt_name.upper()
+        if self.cmd_has_kw_options(cmd_name):
+            opts = self.get_cmd_kw_options(cmd_name)
+            if opts.__contains__(opt_name):
+                return True
+        return False
+
+    def get_cmd_option(self, cmd_name, opt_name):
+        """docstring for get_cmd_option"""
+        opt_name = opt_name.upper()
+        if self.cmd_has_option(cmd_name, opt_name):
+            opts = self.get_cmd_options(cmd_name):
+                return opts[opt_name]
+        return None
+
+    def get_cmd_kw_option(self, cmd_name, opt_name):
+        """docstring for get_cmd_kw_option"""
+        opt_name = opt_name.upper()
+        if self.cmd_has_kw_option(cmd_name, opt_name):
+            opts = self.get_cmd_kw_options(cmd_name):
+                return opts[opt_name]
+        return None
+
+
+    #============== End Commands ==============#
+    #============== Begin Sub Commands ========#
+
+    def cmd_has_sub_cmds(self, cmd_name):
+        """docstring for cmd_has_sub_cmds"""
+        if self.cmd_exists(cmd_name):
+            cmd = self.get_cmd(cmd_name)
+            if cmd.__contains__(SUB_COMMANDS):
+                sub_cmds = cmd[SUB_COMMANDS]
+                if len(sub_cmds) > 0:
+                    return True
+        return False
+
+    def get_sub_cmds(self, cmd_name):
+        """docstring for get_sub_cmds"""
+        if self.cmd_exists(cmd_name):
+            cmd = self.get_cmd(cmd_name)
+            if cmd.__contains__(SUB_COMMANDS):
+                sub_cmds = cmd[SUB_COMMANDS]
+                return sub_cmds
+        return None
+
+    def sub_cmd_exists(self, cmd_name, sub_cmd_name):
+        """docstring for sub_cmd_exists"""
+        sub_cmd_name = sub_cmd_name.upper()
+        if self.cmd_exists(cmd_name):
+            cmd = self.get_cmd(cmd_name)
+            if cmd.__contains__(SUB_COMMANDS):
+                sub_cmds = cmd[SUB_COMMANDS]
+                if sub_cmds.__contains__(sub_cmd_name):
+                    return True
+        return False
+
+    def get_sub_cmd(self, cmd_name, sub_cmd_name):
+        """docstring for get_sub_cmd"""
+        sub_cmd_name = sub_cmd_name.upper()
+        if self.sub_cmd_exists(cmd_name, sub_cmd_name):
+            sub_cmds = self.get_sub_cmds(cmd_name)
+            return sub_cmds[sub_cmd_name]
+        return None
+
+    def get_sub_cmd_description(self, cmd_name, sub_cmd_name):
+        """docstring for get_sub_cmd_description"""
+        if self.sub_cmd_exists(cmd_name, sub_cmd_name):
+            sub_cmd = self.get_sub_cmd(cmd_name, sub_cmd_name)
+            if sub_cmd is not None:
+                return sub_cmd[DESCRIPTION]
+        return None
+
+    def get_sub_cmd_prompt_token_callback(self, cmd_name, sub_cmd_name):
+        """docstring for get_sub_cmd_prompt_token_callback"""
+        if self.sub_cmd_exists(cmd_name, sub_cmd_name):
+            sub_cmd = self.get_sub_cmd(cmd_name, sub_cmd_name)
+            if sub_cmd is not None:
+                return cmd[TOKEN_CALLBACK]
+        return None
+
+    #========== End Sub Commands =============#
+
+    def parse_cmd_text(self, cmd_text):
+        """docstring for parse_cmd_text"""
+        if cmd_text is None:
+            return None
+        cmd_tokens = cmd_text.split()
+        parsed_cmd = {}
+        if len(cmd_tokens) > 0:
+            #the first token is main command
+            main_cmd = cmd_tokens[0]
+            #check if the provided cmd is registered or not
+            if self.cmd_exists(main_cmd):
+                #process the command further to get subcmds and opts
+                parsed_cmd[MAIN_CMD] = main_cmd
+                if len(cmd_tokens) > 1:
+                    #we still have more tokens to be processed
+                    #The tokens could be param to main cmd or
+                    #it could be an subcmd.
+                    next_token = cmd_tokens[1]
+                    # Next token is an option if any of following are true-
+                    # starts with '--' chars
+                    # starts with '-' char
+                    # contains '=' operator
+                    # or token next to 'Next token' is '='
+                    if next_token.startswith('--') or\
+                            next_token.startswith('-') or\
+                            next_token.find('=') > 0 or\
+                            (len(cmd_tokens) >= 3 and\
+                            cmd_tokens[2] == '='):
+                        parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'CMD')
+                        return cmd
+                    else:
+                        parsed_cmd[SUB_CMD] = next_token
+                        parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'SUB_CMD')
+                        return parsed_cmd
+                else:
+                    return parsed_cmd
+            else:
+                #Command is not registered, will return None
+                return None
+
+    def build_options(self, parsed_cmd, tokens, cmd_type):
+        """docstring for build_options"""
+        options = {}
+        kw_options = {}
+        opt_tokens = []
+        if cmd_type == 'CMD':
+            opt_tokens = tokens[1:]
+        else:
+            opt_tokens = tokens[2:]
+        if len(opt_tokens) > 0:
+            cmd_name = tokens[0].upper()
+            skip = 0
+            for i in range(len(opt_tokens)):
+                if skip > 0:
+                    skip -= 1
+                    continue
+                next_token = opt_tokens[i].upper()
+                if next_token.startswith('-'):
+                    if self.cmd_has_option(cmd_name, next_token):
+                        options[next_token] = True
+                elif next_token.startswith('--'):
+                    if self.cmd_has_option(cmd_name, next_token):
+                        options[next_token] = True
+                elif next_token.find('=') > 0:
+                    kv_token = next_token.split('=')
+                    if self.cmd_has_kw_option(cmd_name, kv_token[0]):
+                        kw_options[kv_token[0]] = kv_token[1]
+                elif (i+1) < len(opt_tokens) and opt_tokens[i+1] == '=':
+                    opt_key = next_token
+                    if self.cmd_has_kw_option(cmd_name, opt_key):
+                        kw_options[opt_key] = None
+                        if (i+2) < len(opt_tokens) and opt_tokens[i+2] is not None:
+                            opt_val = opt_tokens[i+2].upper() #i+1 is an = sign
+                            kw_options[opt_key] = opt_val
+                            skip = 2 #skip option_name and equal to sign
+            parsed_cmd[OPTIONS] = options
+            parsed_cmd[KW_OPTIONS] = kw_options
+            return parsed_cmd
+
+
