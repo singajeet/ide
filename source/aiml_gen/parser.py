@@ -31,9 +31,9 @@ class CommandParser(object):
         self._current_cmd = None
         self._current_sub_cmd = None
         self._is_command_completed = None
-        self._commands_registry = {}
+        self._command_registry = {}
 
-    def register_command(self, cmd, description=None, get_prompt_tokens_callback=None, cmd_processor_callback=None, options={}, kw_options={}):
+    def register_command(self, cmd, description=None, get_prompt_tokens_callback=None, cmd_processor_callback=None, p_options={}, p_kw_options={}):
         """docstring for register_command"""
         if self._command_registry is None:
             self._command_registry = {}
@@ -46,8 +46,14 @@ class CommandParser(object):
             cmd_record[TOKEN_CALLBACK] = get_prompt_tokens_callback
             cmd_record[PROCESSOR_CALLBACK] = cmd_processor_callback
             cmd_record[SUB_COMMANDS] = {}
+            options = {}
+            for opt, val in p_options.items():
+                options[opt.upper()] = val
             cmd_record[OPTIONS] = options
-            cmd_recors[KW_OPTIONS] = kw_options
+            kw_options = {}
+            for opt, val in p_kw_options.items():
+                kw_options[opt.upper()] = val
+            cmd_record[KW_OPTIONS] = kw_options
             self._command_registry[cmd] = cmd_record
 
     def register_sub_command(self, cmd, sub_cmd, description=None, get_prompt_tokens_callback=None):
@@ -55,6 +61,7 @@ class CommandParser(object):
         if self._command_registry is None:
             raise Exception('Command registry is not yet initialized. Atleast one command needs to registered to init the command registry')
         cmd = cmd.upper()
+        sub_cmd = sub_cmd.upper()
         if self._command_registry.__contains__(cmd):
             cmd_record = self._command_registry[cmd]
             sub_cmds = cmd_record[SUB_COMMANDS]
@@ -72,7 +79,7 @@ class CommandParser(object):
         """
         cmds_list = []
         cmds_meta_dict = {}
-        for cmd_name, cmd in self._commands_registry.items():
+        for cmd_name, cmd in self._command_registry.items():
             if cmds_list.__contains__(cmd_name):
                 cmds_list.pop(cmd_name)
                 cmds_meta_dict.pop(cmd_name)
@@ -89,16 +96,16 @@ class CommandParser(object):
 
     def get_cmds(self):
         """docstring for get_cmds"""
-        if self._commands_registry is None:
+        if self._command_registry is None:
             return None
-        return self._commands_registry
+        return self._command_registry
 
     def cmd_exists(self, cmd_name):
         """docstring for cmd_exists"""
-        if self._commands_registry is None:
+        if self._command_registry is None:
             return False
         cmd_name = cmd_name.upper()
-        if self._commands_registry.__contains__(cmd_name):
+        if self._command_registry.__contains__(cmd_name):
             return True
         else:
             return False
@@ -190,16 +197,16 @@ class CommandParser(object):
         """docstring for get_cmd_option"""
         opt_name = opt_name.upper()
         if self.cmd_has_option(cmd_name, opt_name):
-            opts = self.get_cmd_options(cmd_name):
-                return opts[opt_name]
+            opts = self.get_cmd_options(cmd_name)
+            return opts[opt_name]
         return None
 
     def get_cmd_kw_option(self, cmd_name, opt_name):
         """docstring for get_cmd_kw_option"""
         opt_name = opt_name.upper()
         if self.cmd_has_kw_option(cmd_name, opt_name):
-            opts = self.get_cmd_kw_options(cmd_name):
-                return opts[opt_name]
+            opts = self.get_cmd_kw_options(cmd_name)
+            return opts[opt_name]
         return None
 
 
@@ -270,7 +277,7 @@ class CommandParser(object):
         parsed_cmd = {}
         if len(cmd_tokens) > 0:
             #the first token is main command
-            main_cmd = cmd_tokens[0]
+            main_cmd = cmd_tokens[0].upper()
             #check if the provided cmd is registered or not
             if self.cmd_exists(main_cmd):
                 #process the command further to get subcmds and opts
@@ -293,7 +300,7 @@ class CommandParser(object):
                         parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'CMD')
                         return cmd
                     else:
-                        parsed_cmd[SUB_CMD] = next_token
+                        parsed_cmd[SUB_CMD] = next_token.upper()
                         parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'SUB_CMD')
                         return parsed_cmd
                 else:
