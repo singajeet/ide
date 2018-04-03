@@ -5,6 +5,9 @@
 .. moduleauthor:: ajeet singh
 """
 
+
+NAME = 'NAME'
+DETAILS = 'DETAILS'
 DESCRIPTION = 'DESCRIPTION'
 TOKEN_CALLBACK = 'TOKEN_CALLBACK'
 PROCESSOR_CALLBACK = 'PROCESSOR_CALLBACK'
@@ -53,7 +56,7 @@ class CommandParser(object):
             cmd_record[KW_OPTIONS] = kw_options
             self._command_registry[cmd] = cmd_record
 
-    def register_sub_command(self, cmd, sub_cmd, description=None, get_prompt_tokens_callback=None):
+    def register_sub_command(self, cmd, sub_cmd, description=None, get_prompt_tokens_callback=None, get_processor_callback=None, p_options={}, p_kw_options={}):
         """docstring for register_sub_command"""
         if self._command_registry is None:
             raise Exception('Command registry is not yet initialized. Atleast one command needs \
@@ -68,6 +71,15 @@ class CommandParser(object):
             sub_cmd_record = {}
             sub_cmd_record[DESCRIPTION] = description
             sub_cmd_record[TOKEN_CALLBACK] = get_prompt_tokens_callback
+            sub_cmd_record[PROCESSOR_CALLBACK] = get_processor_callback
+            options = {}
+            for opt, val in p_options.items():
+                options[opt.upper()] = val.upper()
+            kw_options = {}
+            for opt, val in p_kw_options.items():
+                kw_options[opt.upper()] = val.upper()
+            sub_cmd_record[OPTIONS] = options
+            sub_cmd_record[KW_OPTIONS] = kw_options
             sub_cmds[sub_cmd] = sub_cmd_record
         else:
             raise Exception('Main command [%s] is not registered yet' % cmd)
@@ -265,6 +277,74 @@ class CommandParser(object):
                 return sub_cmd[TOKEN_CALLBACK]
         return None
 
+    def sub_cmd_has_options(self, cmd_name, sub_cmd_name):
+        """docstring for sub_cmd_has_options"""
+        if self.sub_cmd_exists(cmd_name, sub_cmd_name):
+            sub_cmd = self.get_sub_cmd(cmd_name, sub_cmd_name)
+            if sub_cmd.__contains__(OPTIONS):
+                opts = sub_cmd[OPTIONS]
+                if len(opts) > 0:
+                    return True
+        return False
+
+    def sub_cmd_has_kw_options(self, cmd_name, sub_cmd_name):
+        """docstring for sub_cmd_has_kw_options"""
+        if self.sub_cmd_exists(cmd_name, sub_cmd_name):
+            sub_cmd = self.get_sub_cmd(cmd_name, sub_cmd_name)
+            if sub_cmd.__contains__(KW_OPTIONS):
+                opts = sub_cmd[KW_OPTIONS]
+                if len(opts) > 0:
+                    return True
+        return False
+
+    def get_sub_cmd_options(self, cmd_name, sub_cmd_name):
+        """docstring for get_sub_cmd_options"""
+        if self.sub_cmd_has_options(cmd_name, sub_cmd_name):
+            sub_cmd = self.get_sub_cmd(cmd_name, sub_cmd_name)
+            return sub_cmd[OPTIONS]
+        return None
+
+    def get_sub_cmd_kw_options(self, cmd_name, sub_cmd_name):
+        """docstring for get_sub_cmd_options"""
+        if self.sub_cmd_has_kw_options(cmd_name, sub_cmd_name):
+            sub_cmd = self.get_sub_cmd(cmd_name, sub_cmd_name)
+            return sub_cmd[KW_OPTIONS]
+        return None
+
+    def sub_cmd_has_option(self, cmd_name, sub_cmd_name, opt_name):
+        """docstring for sub_cmd_has_option"""
+        opt_name = opt_name.upper()
+        if self.sub_cmd_has_options(cmd_name, sub_cmd_name):
+            opts = self.get_sub_cmd_options(cmd_name, sub_cmd_name)
+            if opts.__contains__(opt_name):
+                return True
+        return False
+
+    def sub_cmd_has_kw_option(self, cmd_name, sub_cmd_name, opt_name):
+        """docstring for sub_cmd_has_kw_option"""
+        opt_name = opt_name.upper()
+        if self.sub_cmd_has_kw_options(cmd_name, sub_cmd_name):
+            opts = self.get_sub_cmd_kw_options(cmd_name, sub_cmd_name)
+            if opts.__contains__(opt_name):
+                return True
+        return False
+
+    def get_sub_cmd_option(self, cmd_name, sub_cmd_name, opt_name):
+        """docstring for get_sub_cmd_option"""
+        opt_name = opt_name.upper()
+        if self.sub_cmd_has_option(cmd_name, sub_cmd_name, opt_name):
+            opts = self.get_sub_cmd_options(cmd_name, sub_cmd_name)
+            return opts[opt_name]
+        return None
+
+    def get_sub_cmd_kw_option(self, cmd_name, sub_cmd_name, opt_name):
+        """docstring for get_sub_cmd_kw_option"""
+        opt_name = opt_name.upper()
+        if self.sub_cmd_has_kw_option(cmd_name, sub_cmd_name, opt_name):
+            opts = self.get_sub_cmd_kw_options(cmd_name, sub_cmd_name)
+            return opts[opt_name]
+        return None
+
     #========== End Sub Commands =============#
 
     def parse_cmd_text(self, cmd_text):
@@ -298,7 +378,8 @@ class CommandParser(object):
                         parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'CMD')
                         return parsed_cmd
                     else:
-                        parsed_cmd[SUB_CMD] = next_token.upper()
+                        parsed_cmd[SUB_CMD] = {}
+                        parsed_cmd[SUB_CMD][next_token.upper()] = {}
                         parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'SUB_CMD')
                         return parsed_cmd
                 else:
@@ -312,12 +393,16 @@ class CommandParser(object):
         options = {}
         kw_options = {}
         opt_tokens = []
+        cmd_name = None
+        sub_cmd_name = None
         if cmd_type == 'CMD':
+            cmd_name = tokens[0].upper()
             opt_tokens = tokens[1:]
         else:
+            cmd_name = tokens[0].upper()
+            sub_cmd_name = tokens[1].upper()
             opt_tokens = tokens[2:]
         if len(opt_tokens) > 0:
-            cmd_name = tokens[0].upper()
             skip = 0
             for i in range(len(opt_tokens)):
                 if skip > 0:
@@ -325,39 +410,89 @@ class CommandParser(object):
                     continue
                 next_token = opt_tokens[i].upper()
                 if next_token.startswith('-'):
-                    if self.cmd_has_option(cmd_name, next_token):
-                        options[next_token] = True
+                    if cmd_type == 'CMD':
+                        if self.cmd_has_option(cmd_name,\
+                                next_token):
+                            options[next_token] = True
+                    else:
+                        if self.sub_cmd_has_option(\
+                                cmd_name, sub_cmd_name,\
+                                next_token):
+                            options[next_token] = True
                 elif next_token.startswith('--'):
-                    if self.cmd_has_option(cmd_name, next_token):
-                        options[next_token] = True
+                    if cmd_type == 'CMD':
+                        if self.cmd_has_option(cmd_name,\
+                                next_token):
+                            options[next_token] = True
+                    else:
+                        if self.sub_cmd_has_option(\
+                                cmd_name, sub_cmd_name,\
+                                next_token):
+                            options[next_token] = True
                 elif next_token.find('=') >= 0:
                     kv_token = next_token.split('=')
-                    if self.cmd_has_kw_option(cmd_name, kv_token[0]):
-                        #SCENARIO: kw= val i.e, space btwn equal(=) sign and 'val'
-                        #kv_token[1] will be empty
-                        if kv_token[1] == '':
-                            #so next token should be taken from opt_tokens and skip one loop
-                            kw_options[kv_token[0]] = opt_tokens[i+1].upper() if (i+1) < len(opt_tokens) else None
-                            skip = 1
-                        else:
-                            kw_options[kv_token[0]] = kv_token[1]
+                    if cmd_type == 'CMD':
+                        if self.cmd_has_kw_option(\
+                                cmd_name, kv_token[0]):
+                            #SCENARIO: kw= val i.e, space
+                            #btwn equal(=) sign and 'val'
+                            #kv_token[1] will be empty
+                            if kv_token[1] == '':
+                                #so next token should be
+                                #taken from opt_tokens and
+                                #skip one loop
+                                kw_options[kv_token[0]] = \
+                                        opt_tokens[i+1].upper()\
+                                        if (i+1) < len(opt_tokens)\
+                                        else None
+                                skip = 1
+                            else:
+                                kw_options[kv_token[0]] = kv_token[1]
+                    else:
+                        if self.sub_cmd_has_kw_option(\
+                                cmd_name, sub_cmd_name, kv_token[0]):
+                            if kv_token[1] == '':
+                                kw_options[kv_token[0]] = \
+                                        opt_tokens[i+1].upper()\
+                                        if (i+1) < len(opt_tokens)\
+                                        else None
+                                skip = 1
+                            else:
+                                kw_options[kv_token[0]] = kv_token[1]
                 elif (i+1) < len(opt_tokens) and opt_tokens[i+1] == '=':
                     opt_key = next_token
-                    if self.cmd_has_kw_option(cmd_name, opt_key):
-                        kw_options[opt_key] = None
-                        if (i+2) < len(opt_tokens) and opt_tokens[i+2] is not None:
-                            opt_val = opt_tokens[i+2].upper() #i+1 is an = sign
-                            kw_options[opt_key] = opt_val
-                            skip = 2 #skip equal to sign and opt_val
+                    if token_type == 'CMD':
+                        if self.cmd_has_kw_option(cmd_name, opt_key):
+                            kw_options[opt_key] = None
+                            if (i+2) < len(opt_tokens) and opt_tokens[i+2] is not None:
+                                opt_val = opt_tokens[i+2].upper() #i+1 is an = sign
+                                kw_options[opt_key] = opt_val
+                                skip = 2 #skip equal to sign and opt_val
+                    else:
+                        if self.sub_cmd_has_kw_option(cmd_name, sub_cmd_name, opt_key):
+                            kw_options[opt_key] = None
+                            if (i+2) < len(opt_tokens) and opt_tokens[i+2] is not None:
+                                opt_val = opt_tokens[i+2].upper() #i+1 is an = sign
+                                kw_options[opt_key] = opt_val
+                                skip = 2 #skip equal to sign and opt_val
                 #SCENARIO: kw =val i.e., space btwn kw and '=' sign
                 elif (i+1) < len(opt_tokens) and opt_tokens[i+1].find('=') >= 0:
                     opt_key = next_token
-                    if self.cmd_has_kw_option(cmd_name, opt_key):
-                        opt_val = opt_tokens[i+1].split('=')
-                        kw_options[opt_key] = opt_val[1].upper()
-                        skip = 1
-            parsed_cmd[OPTIONS] = options
-            parsed_cmd[KW_OPTIONS] = kw_options
+                    if cmd_type == 'CMD':
+                        if self.cmd_has_kw_option(cmd_name, opt_key):
+                            opt_val = opt_tokens[i+1].split('=')
+                            kw_options[opt_key] = opt_val[1].upper()
+                            skip = 1
+                    else:
+                        if self.sub_cmd_has_kw_option(cmd_name, sub_cmd_name, opt_key):
+                            opt_val = opt_token[i+1].split('=')
+                            kw_options[opt_key] = opt_val[1].upper()
+            if cmd_type == 'CMD':
+                parsed_cmd[OPTIONS] = options
+                parsed_cmd[KW_OPTIONS] = kw_options
+            else:
+                parsed_cmd[SUB_CMD][sub_cmd_name][OPTIONS] = options
+                parsed_cmd[SUB_CMD][sub_cmd_name][KW_OPTIONS] = kw_options
             return parsed_cmd
 
 
