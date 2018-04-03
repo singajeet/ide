@@ -95,11 +95,34 @@ class CommandParser(object):
                 cmds_meta_dict.pop(cmd_name)
             cmds_list.append(cmd_name)
             cmds_meta_dict[cmd_name] = cmd[DESCRIPTION]
+            #options
+            for opt, val in cmd[OPTIONS].items():
+                if cmds_list.__contains__(opt):
+                    cmds_list.pop(opt)
+                cmds_list.append(opt)
+            #kw options
+            for opt, val in cmd[KW_OPTIONS].items():
+                if cmds_list.__contains__(opt):
+                    cmds_list.pop(opt)
+                cmds_list.append(opt)
+
+            #-------- Sub CMDs ---------#
             sub_cmds = cmd[SUB_COMMANDS]
             for sub_cmd_name, sub_cmd in sub_cmds.items():
                 if not cmds_list.__contains__(sub_cmd_name):
                     cmds_list.append(sub_cmd_name)
                     cmds_meta_dict[sub_cmd_name] = sub_cmd[DESCRIPTION]
+            #options
+            for opt, val in sub_cmds[OPTIONS].items():
+                if cmds_list.__contains__(opt):
+                    cmds_list.pop(opt)
+                cmds_list.append(opt)
+            #kw options
+            for opt, val in sub_cmds[KW_OPTIONS].items():
+                if cmds_list.__contains__(opt):
+                    cmds_list.pop(opt)
+                cmds_list.append(opt)
+
         return (cmds_list, cmds_meta_dict)
 
     #=========== Begin Commands ============#
