@@ -74,10 +74,10 @@ class CommandParser(object):
             sub_cmd_record[PROCESSOR_CALLBACK] = get_processor_callback
             options = {}
             for opt, val in p_options.items():
-                options[opt.upper()] = val.upper()
+                options[opt.upper()] = val
             kw_options = {}
             for opt, val in p_kw_options.items():
-                kw_options[opt.upper()] = val.upper()
+                kw_options[opt.upper()] = val
             sub_cmd_record[OPTIONS] = options
             sub_cmd_record[KW_OPTIONS] = kw_options
             sub_cmds[sub_cmd] = sub_cmd_record
@@ -112,16 +112,16 @@ class CommandParser(object):
                 if not cmds_list.__contains__(sub_cmd_name):
                     cmds_list.append(sub_cmd_name)
                     cmds_meta_dict[sub_cmd_name] = sub_cmd[DESCRIPTION]
-            #options
-            for opt, val in sub_cmds[OPTIONS].items():
-                if cmds_list.__contains__(opt):
-                    cmds_list.pop(opt)
-                cmds_list.append(opt)
-            #kw options
-            for opt, val in sub_cmds[KW_OPTIONS].items():
-                if cmds_list.__contains__(opt):
-                    cmds_list.pop(opt)
-                cmds_list.append(opt)
+                #options
+                for opt, val in sub_cmd[OPTIONS].items():
+                    if cmds_list.__contains__(opt):
+                        cmds_list.pop(opt)
+                    cmds_list.append(opt)
+                #kw options
+                for opt, val in sub_cmd[KW_OPTIONS].items():
+                    if cmds_list.__contains__(opt):
+                        cmds_list.pop(opt)
+                    cmds_list.append(opt)
 
         return (cmds_list, cmds_meta_dict)
 
@@ -407,9 +407,8 @@ class CommandParser(object):
                         return parsed_cmd
                 else:
                     return parsed_cmd
-            else:
-                #Command is not registered, will return None
-                return None
+        #Command is not registered, will return None
+        return None
 
     def build_options(self, parsed_cmd, tokens, cmd_type):
         """docstring for build_options"""
@@ -484,7 +483,7 @@ class CommandParser(object):
                                 kw_options[kv_token[0]] = kv_token[1]
                 elif (i+1) < len(opt_tokens) and opt_tokens[i+1] == '=':
                     opt_key = next_token
-                    if token_type == 'CMD':
+                    if cmd_type == 'CMD':
                         if self.cmd_has_kw_option(cmd_name, opt_key):
                             kw_options[opt_key] = None
                             if (i+2) < len(opt_tokens) and opt_tokens[i+2] is not None:
@@ -508,7 +507,7 @@ class CommandParser(object):
                             skip = 1
                     else:
                         if self.sub_cmd_has_kw_option(cmd_name, sub_cmd_name, opt_key):
-                            opt_val = opt_token[i+1].split('=')
+                            opt_val = opt_tokens[i+1].split('=')
                             kw_options[opt_key] = opt_val[1].upper()
             if cmd_type == 'CMD':
                 parsed_cmd[OPTIONS] = options

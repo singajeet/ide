@@ -80,6 +80,7 @@ AIML_DB_KEY = 'aiml_db'
 AIML_DB = _config_parser.get(AIML_SECTION, AIML_DB_KEY)
 
 ################ CLI configuration #############################
+TOKENS_SECTION = 'tokens'
 class Token(object):
     _symbol_key = 'token_symbol'
     _color_key = 'token_color'
