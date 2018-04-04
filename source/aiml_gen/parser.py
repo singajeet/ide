@@ -18,7 +18,7 @@ OPTIONS = 'OPTIONS'
 OPTION = 'OPTION'
 KW_OPTIONS = 'KW_OPTIONS'
 KW_OPTION = 'KW_OPTION'
-
+REQUIRED = 'REQUIRED'
 
 class CommandParser(object):
     """Parser for parsing line string provided to this class based on the cmds registered
@@ -32,8 +32,8 @@ class CommandParser(object):
         self._is_command_completed = None
         self._command_registry = {}
 
-    def register_command(self, cmd, description=None, get_prompt_tokens_callback=None,\
-            cmd_processor_callback=None, p_options={}, p_kw_options={}):
+    def register_command(self, cmd, description=None, prompt_tokens_callback=None,\
+            cmd_processor_callback=None, options={}, kw_options={}, required_fields=[]):
         """docstring for register_command"""
         if self._command_registry is None:
             self._command_registry = {}
@@ -43,20 +43,21 @@ class CommandParser(object):
                 self._command_registry.pop(cmd)
             cmd_record = {}
             cmd_record[DESCRIPTION] = description
-            cmd_record[TOKEN_CALLBACK] = get_prompt_tokens_callback
+            cmd_record[TOKEN_CALLBACK] = prompt_tokens_callback
             cmd_record[PROCESSOR_CALLBACK] = cmd_processor_callback
             cmd_record[SUB_COMMANDS] = {}
-            options = {}
-            for opt, val in p_options.items():
-                options[opt.upper()] = val.upper()
-            cmd_record[OPTIONS] = options
-            kw_options = {}
-            for opt, val in p_kw_options.items():
-                kw_options[opt.upper()] = val.upper()
-            cmd_record[KW_OPTIONS] = kw_options
+            u_options = {}
+            for opt, val in options.items():
+                u_options[opt.upper()] = val.upper()
+            cmd_record[OPTIONS] = u_options
+            u_kw_options = {}
+            for opt, val in kw_options.items():
+                u_kw_options[opt.upper()] = val.upper()
+            cmd_record[KW_OPTIONS] = u_kw_options
+            cmd_record[REQUIRED] = required_fields
             self._command_registry[cmd] = cmd_record
 
-    def register_sub_command(self, cmd, sub_cmd, description=None, get_prompt_tokens_callback=None, get_processor_callback=None, p_options={}, p_kw_options={}):
+    def register_sub_command(self, cmd, sub_cmd, description=None, prompt_tokens_callback=None, cmd_processor_callback=None, options={}, kw_options={}, required_fields=[]):
         """docstring for register_sub_command"""
         if self._command_registry is None:
             raise Exception('Command registry is not yet initialized. Atleast one command needs \
@@ -70,16 +71,17 @@ class CommandParser(object):
                 sub_cmds.pop(sub_cmd)
             sub_cmd_record = {}
             sub_cmd_record[DESCRIPTION] = description
-            sub_cmd_record[TOKEN_CALLBACK] = get_prompt_tokens_callback
-            sub_cmd_record[PROCESSOR_CALLBACK] = get_processor_callback
-            options = {}
-            for opt, val in p_options.items():
-                options[opt.upper()] = val
-            kw_options = {}
-            for opt, val in p_kw_options.items():
-                kw_options[opt.upper()] = val
-            sub_cmd_record[OPTIONS] = options
-            sub_cmd_record[KW_OPTIONS] = kw_options
+            sub_cmd_record[TOKEN_CALLBACK] = prompt_tokens_callback
+            sub_cmd_record[PROCESSOR_CALLBACK] = cmd_processor_callback
+            u_options = {}
+            for opt, val in options.items():
+                u_options[opt.upper()] = val
+            u_kw_options = {}
+            for opt, val in kw_options.items():
+                u_kw_options[opt.upper()] = val
+            sub_cmd_record[OPTIONS] = u_options
+            sub_cmd_record[KW_OPTIONS] = u_kw_options
+            sub_cmd_record[REQUIRED] = required_fields
             sub_cmds[sub_cmd] = sub_cmd_record
         else:
             raise Exception('Main command [%s] is not registered yet' % cmd)
@@ -142,6 +144,13 @@ class CommandParser(object):
             return True
         else:
             return False
+
+    def get_cmd_required_fields(self, cmd_name):
+        """docstring for get_cmd_required_fields"""
+        cmd = self.get_cmd(cmd_name)
+        if cmd is not None:
+            return cmd[REQUIRED]
+        return None
 
     def get_cmd(self, cmd_name):
         """docstring for get_cmd"""
@@ -284,6 +293,14 @@ class CommandParser(object):
             return sub_cmds[sub_cmd_name]
         return None
 
+    def get_sub_cmd_required_fields(self, cmd_name, sub_cmd_name):
+        """docstring for get_sub_cmd_required_fields"""
+        if self.sub_cmd_exists(cmd_name, sub_cmd_name):
+            sub_cmd = self.get_sub_cmd(cmd_name, sub_cmd_name)
+            if sub_cmd is not None:
+                return sub_cmd[REQUIRED]
+        return None
+
     def get_sub_cmd_description(self, cmd_name, sub_cmd_name):
         """docstring for get_sub_cmd_description"""
         if self.sub_cmd_exists(cmd_name, sub_cmd_name):
@@ -383,6 +400,7 @@ class CommandParser(object):
             if self.cmd_exists(main_cmd):
                 #process the command further to get subcmds and opts
                 parsed_cmd[MAIN_CMD] = main_cmd
+                parsed_cmd[REQUIRED] = self.get_cmd_required_fields(main_cmd)
                 if len(cmd_tokens) > 1:
                     #we still have more tokens to be processed
                     #The tokens could be param to main cmd or
@@ -403,6 +421,7 @@ class CommandParser(object):
                     else:
                         parsed_cmd[SUB_CMD] = {}
                         parsed_cmd[SUB_CMD][next_token.upper()] = {}
+                        parsed_cmd[REQUIRED] = self.get_sub_cmd_required_fields(main_cmd, next_token)
                         parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'SUB_CMD')
                         return parsed_cmd
                 else:

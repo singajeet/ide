@@ -62,10 +62,14 @@ class AimlGeneratorCLI(object):
         sub_cmd_kw_opts = {'PATTERN':'', 'TEMPLATE':'', 'SYSTEM':'',\
                 'REF_THAT':'', 'REF_TOPIC':'', 'FORWARD_TO':''}
         sub_cmd_opts = {'--USE_DEFAULTS': False}
+        sub_cmd_required = ['PATTERN', 'TEMPLATE']
         #-------------------- Register Commands --------------------
         self._parser.register_command(cmd, description=cmd_description)
-        self._parser.register_sub_command(cmd, sub_cmd, description=sub_cmd_description,\
-                p_options=sub_cmd_opts, p_kw_options=sub_cmd_kw_opts)
+        self._parser.register_sub_command(cmd, sub_cmd,\
+                description=sub_cmd_description,\
+                p_options=sub_cmd_opts,\
+                p_kw_options=sub_cmd_kw_opts,\
+                required_fields=sub_cmd_required)
         #-------------------- End Register Commands --------------------
         #-------------------- Populate command completer dicts --------------------
         cmd_completer = self._parser.get_cmd_completer()
@@ -103,6 +107,81 @@ class AimlGeneratorCLI(object):
             (Token.RightBracket, config.Token.RBracket.Symbol),
             (Token.Colon, config.Token.Colon.Symbol),
         ]
+
+    def validate_for_required_args(self, parsed_cmd):
+        """docstring for validate_for_required_args"""
+        #SCENARIO: Return True (i.e., cmd is valid)
+        #if no required attributes for main cmd
+        #and no sub-cmd for this main cmd
+        if not parsed_cmd.__contains__('REQUIRED') and\
+                (not parsed_cmd.__contains__('SUB_CMD')\
+                or len(parsed_cmd['SUB_CMD'] <= 0)):
+            return (True, [])
+        #SCENARIO: Main cmd has required attr's and\
+        #no-sub cmd for this main cmd
+        elif parsed_cmd.__contains__('REQUIRED') and\
+                (not parsed_cmd.__contains__('SUB_CMD')\
+                or len(parsed_cmd['SUB_CMD']) <= 0):
+            #SUB-SCENARIO: if no opts or kw-opts exists
+            #in cmd, return true
+            if not parsed_cmd.__contains__('OPTIONS')\
+                    and not\
+                    parsed_cmd.__contains__('KW_OPTIONS'):
+                return (True, [])
+            #SUB-SCENARIO: if opts or kw-opts exist in cmd
+            #check whether all required flds exists in any
+            #opt or kw-opt
+            else:
+                return self.validate_options(parsed_cmd)
+        elif not parsed_cmd.__contains__('REQUIRED') and\
+                (parsed_cmd.__contains__('SUB_CMD') and\
+                len(parsed_cmd['SUB_CMD']) > 0):
+            sub_cmds = parsed_cmd['SUB_CMD']
+            sub_cmd_name = tuple(parsed_cmd['SUB_CMD'])[0]
+            sub_cmd_details = parsed_cmd['SUB_CMD'][sub_cmd_name]
+            return self.validate_options(sub_cmd_details)
+        elif parsed_cmd.__contains__('REQUIRED') and \
+                (parsed_cmd.__contains__('SUB_CMD') and\
+                len(parsed_cmd['SUB_CMD']) > 0):
+            (cmd_status, cmd_flds) = self.validate_options(parsed_cmd)
+            sub_cmds = parsed_cmd['SUB_CMD']
+            sub_cmd_name = tuple(parsed_cmd['SUB_CMD'])[0]
+            sub_cmd_details = parsed_cmd['SUB_CMD'][sub_cmd_name]
+            (sub_cmd_status, sub_cmd_flds) = \
+                    self.validate_options(sub_cmd_details)
+            all_flds = cmd_flds + sub_cmd_flds
+            if cmd_status is False or  sub_cmd_status is False:
+                return (False, all_flds)
+        else:
+            return (True, [])
+
+    def validate_options(self, parsed_cmd):
+        required_fields = parsed_cmd['REQUIRED']
+        req_fld_dict = { fld : False for fld in required_fields }
+        if req_fld_dict is not None and len(req_fld_dict) > 0:
+            if parsed_cmd.__contains__('OPTIONS'):
+                for fld_name, status in req_fld_dict.items():
+                    #check if fld available in options
+                    if status is False:
+                        if parsed_cmd['OPTIONS'].\
+                                __contains__(fld_name)\
+                                and parsed_cmd['OPTIONS'][fld_name]\
+                                is not None:
+                                    req_fld_dict[fld_name] = True
+            if parsed_cmd.__contains__('KW_OPTIONS'):
+                for fld_name, status in req_fld_dict.items():
+                    #check if fld available in kw-options
+                    if status is False:
+                        if parsed_cmd['KW_OPTIONS'].\
+                                __contains__(fld_name) and\
+                                parsed_cmd['KW_OPTIONS'][fld_name]\
+                                is not None:
+                                    req_fld_dict[fld_name] = True
+        for fld, status in req_fld_dict.items():
+            if status is False:
+                return (False, [fld for fld, status in req_fld_dict\
+                        .items() if status is False])
+        return (True, [])
 
     def start(self):
         """Start the while loop for prompt
