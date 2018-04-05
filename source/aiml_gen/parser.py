@@ -317,6 +317,14 @@ class CommandParser(object):
                 return sub_cmd[TOKEN_CALLBACK]
         return None
 
+    def get_sub_cmd_processor_callback(self, cmd_name, sub_cmd_name):
+        """docstring for get_cmd_processor_callback"""
+        if self.sub_cmd_exists(cmd_name, sub_cmd_name):
+            sub_cmd = self.get_sub_cmd(cmd_name, sub_cmd_name)
+            return sub_cmd[PROCESSOR_CALLBACK]
+        else:
+            return None
+
     def sub_cmd_has_options(self, cmd_name, sub_cmd_name):
         """docstring for sub_cmd_has_options"""
         if self.sub_cmd_exists(cmd_name, sub_cmd_name):
@@ -419,10 +427,25 @@ class CommandParser(object):
                         parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'CMD')
                         return parsed_cmd
                     else:
-                        parsed_cmd[SUB_CMD] = {}
-                        parsed_cmd[SUB_CMD][next_token.upper()] = {}
-                        parsed_cmd[REQUIRED] = self.get_sub_cmd_required_fields(main_cmd, next_token)
-                        parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'SUB_CMD')
+                        #the token could be an sub-command
+                        #check same
+                        if self.sub_cmd_exists(main_cmd, next_token):
+                            sub_cmds = {}
+                            parsed_cmd[SUB_CMD] = sub_cmds
+                            parsed_sub_cmd = {}
+                            sub_cmds[next_token.upper()]\
+                                    = parsed_sub_cmd
+                            parsed_sub_cmd[REQUIRED] = self\
+                                    .get_sub_cmd_required_fields(\
+                                    main_cmd, next_token)
+                            parsed_sub_cmd[PROCESSOR_CALLBACK] = \
+                                    self.get_sub_cmd_processor_callback(main_cmd,\
+                                    next_token)
+                            parsed_sub_cmd[TOKEN_CALLBACK] = \
+                                    self.get_sub_cmd_prompt_token_callback(main_cmd,\
+                                    next_token)
+                        parsed_cmd = self.build_options(parsed_cmd,\
+                                cmd_tokens, 'SUB_CMD')
                         return parsed_cmd
                 else:
                     return parsed_cmd

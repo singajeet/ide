@@ -52,6 +52,18 @@ class AimlGeneratorCLI(object):
         self._cmd_history = FileHistory('.ide_aiml_gen.history')
         self._register_commands()
 
+    def new_cmd_callback(self, *args, **kwargs):
+        """docstring for new_cmd_callback"""
+        print('NEW CMD: ')
+        print(*args)
+        print(**kwargs)
+
+    def new_category_sub_cmd_callback(self, *args, **kwargs):
+        """docstring for new_category_sub_cmd_callback"""
+        print('NEW CATEGORY SUB-CMD: ')
+        print(*args)
+        print(**kwargs)
+
     def _register_commands(self):
         """docstring for register_commands"""
         #-------------------- COMMAND => [NEW] SUB-COMMAND => [CATEGORY] --------------------
@@ -64,11 +76,19 @@ class AimlGeneratorCLI(object):
         sub_cmd_opts = {'--USE_DEFAULTS': False}
         sub_cmd_required = ['PATTERN', 'TEMPLATE']
         #-------------------- Register Commands --------------------
-        self._parser.register_command(cmd, description=cmd_description)
+        self._parser.register_command(cmd, description\
+                =cmd_description, prompt_tokens_callback\
+                =self.get_cmd_prompt_tokens, \
+                cmd_processor_callback\
+                =self.new_cmd_callback)
         self._parser.register_sub_command(cmd, sub_cmd,\
                 description=sub_cmd_description,\
-                p_options=sub_cmd_opts,\
-                p_kw_options=sub_cmd_kw_opts,\
+                prompt_tokens_callback\
+                =self.get_sub_cmd_prompt_tokens,
+                cmd_processor_callback=\
+                        self.new_category_sub_cmd_callback,
+                options=sub_cmd_opts,\
+                kw_options=sub_cmd_kw_opts,\
                 required_fields=sub_cmd_required)
         #-------------------- End Register Commands --------------------
         #-------------------- Populate command completer dicts --------------------
@@ -97,7 +117,7 @@ class AimlGeneratorCLI(object):
             (Token.Colon, config.Token.Colon.Symbol),
         ]
 
-    def get_main_cmd_prompt_tokens(self, cli):
+    def get_cmd_prompt_tokens(self, cli):
         """Prompt when in main command
         """
         return [
@@ -116,7 +136,7 @@ class AimlGeneratorCLI(object):
         if not parsed_cmd.__contains__('REQUIRED') and\
                 (not parsed_cmd.__contains__('SUB_CMD')\
                 or len(parsed_cmd['SUB_CMD'] <= 0)):
-            return (True, [])
+            return (True, {})
         #SCENARIO: Main cmd has required attr's and\
         #no-sub cmd for this main cmd
         elif parsed_cmd.__contains__('REQUIRED') and\
@@ -127,33 +147,41 @@ class AimlGeneratorCLI(object):
             if not parsed_cmd.__contains__('OPTIONS')\
                     and not\
                     parsed_cmd.__contains__('KW_OPTIONS'):
-                return (True, [])
+                return (True, {})
             #SUB-SCENARIO: if opts or kw-opts exist in cmd
             #check whether all required flds exists in any
             #opt or kw-opt
             else:
-                return self.validate_options(parsed_cmd)
+                (status, cmd_flds) = self.validate_options(parsed_cmd)
+                flds_dict = {}
+                flds_dict['CMD'] = cmd_flds
+                return (status, flds_dict)
         elif not parsed_cmd.__contains__('REQUIRED') and\
                 (parsed_cmd.__contains__('SUB_CMD') and\
                 len(parsed_cmd['SUB_CMD']) > 0):
             sub_cmds = parsed_cmd['SUB_CMD']
             sub_cmd_name = tuple(parsed_cmd['SUB_CMD'])[0]
             sub_cmd_details = parsed_cmd['SUB_CMD'][sub_cmd_name]
-            return self.validate_options(sub_cmd_details)
+            (status, sub_cmd_flds) =  self.validate_options(sub_cmd_details)
+            flds_dict = {}
+            flds_dict['SUB_CMD'] = sub_cmd_flds
+            return (status, flds_dict)
         elif parsed_cmd.__contains__('REQUIRED') and \
                 (parsed_cmd.__contains__('SUB_CMD') and\
                 len(parsed_cmd['SUB_CMD']) > 0):
+            flds_dict={}
             (cmd_status, cmd_flds) = self.validate_options(parsed_cmd)
+            flds_dict['CMD'] = cmd_flds
             sub_cmds = parsed_cmd['SUB_CMD']
             sub_cmd_name = tuple(parsed_cmd['SUB_CMD'])[0]
             sub_cmd_details = parsed_cmd['SUB_CMD'][sub_cmd_name]
             (sub_cmd_status, sub_cmd_flds) = \
                     self.validate_options(sub_cmd_details)
-            all_flds = cmd_flds + sub_cmd_flds
+            flds_dict['SUB_CMD'] = sub_cmd_flds
             if cmd_status is False or  sub_cmd_status is False:
-                return (False, all_flds)
+                return (False, flds_dict)
         else:
-            return (True, [])
+            return (True, {})
 
     def validate_options(self, parsed_cmd):
         required_fields = parsed_cmd['REQUIRED']
@@ -212,14 +240,14 @@ class AimlGeneratorCLI(object):
                 if parsed_cmd is None:
                     print('Command format is not valid! Kindly check and try again')
                     continue
-                valid = self.validate_for_required_args(parsed_cmd)
+                (valid, missing_flds) = self.validate_for_required_args(parsed_cmd)
                 if valid:
                     #is_cmd_session_in_progress = True
                     #SCENARIO: Command don't have any sub command
                     if parsed_cmd['SUB_CMD'] is None or len(parsed_cmd['SUB_CMD']) <= 0:
                         processor_callback = parsed_cmd['PROCESSOR_CALLBACK']
                         if processor_callback is None or not callable(processor_callback):
-                            print('No such command exists: %s' % parsed_cmd['MAIN_CMD'])
+                            print('No callable found for command: %s' % parsed_cmd['MAIN_CMD'])
                         else:
                             processor_callback(parsed_cmd['MAIN_CMD'], parsed_cmd['OPTIONS'], parsed_cmd['KW_OPTIONS'])
                     elif parsed_cmd['SUB_CMD'] is not None and len(parsed_cmd['SUB_CMD']) > 0:
@@ -229,12 +257,24 @@ class AimlGeneratorCLI(object):
                         kw_options = parsed_cmd['SUB_CMD'][sub_cmd_name]['KW_OPTIONS']
                         processor_callback = parsed_cmd['SUB_CMD'][sub_cmd_name]['PROCESSOR_CALLBACK']
                         if processor_callback is None or not callable(processor_callback):
-                            print('No such sub-command exists: %s' % sub_cmd_name)
+                            print('No callable found for sub-command: %s' % sub_cmd_name)
                         else:
                             processor_callback(cmd_name, sub_cmd_name, options, kw_options)
                     #is_cmd_session_in_progress = False
+                else:
+                    #required fields are missing, prompt for same
+                    for flds_type, flds_items in missing_flds.items():
+                        for fld in flds_items:
+                            print('[%s] Enter value for "%s" =>'\
+                                    % (parsed_cmd['MAIN_CMD']\
+                                    if flds_type == 'CMD' else\
+                                    parsed_cmd['SUB_CMD'], fld))
             else:
-                pass
+                if self._parser.cmd_exists(cmd_text):
+                    self.print_cmd_help(cmd_text, 'CMD')
+                else:
+                    print('No such command found!')
+                    self.print_cmd_help(cmd_text, 'SUB_CMD')
 
             """if current_cmd == 'DEFAULT': #not in any command mode, check which command is entered by user
                 if cmd.lower() == 'new cat' or cmd.lower() == 'new category':
@@ -260,6 +300,9 @@ class AimlGeneratorCLI(object):
             else: #unknown cmd-mode, will print error
                 print('Unknown command mode, please try again!')
             """
+    def print_cmd_help(self, cmd_type):
+        """docstring for print"""
+        print('Will print help here!')
 
     def save_category(self):
         """Save the current category pattern and template in database
