@@ -427,25 +427,27 @@ class CommandParser(object):
                         parsed_cmd = self.build_options(parsed_cmd, cmd_tokens, 'CMD')
                         return parsed_cmd
                     else:
-                        #the token could be an sub-command
-                        #check same
+                        #the token next to main cmd (at index=1) could be an sub-command
+                        #since above condition is not valid. Check same and process it
                         if self.sub_cmd_exists(main_cmd, next_token):
+                            sub_cmd_name = next_token.upper()
                             sub_cmds = {}
                             parsed_cmd[SUB_CMD] = sub_cmds
                             parsed_sub_cmd = {}
-                            sub_cmds[next_token.upper()]\
+                            sub_cmds[sub_cmd_name]\
                                     = parsed_sub_cmd
                             parsed_sub_cmd[REQUIRED] = self\
                                     .get_sub_cmd_required_fields(\
-                                    main_cmd, next_token)
+                                    main_cmd, sub_cmd_name)
                             parsed_sub_cmd[PROCESSOR_CALLBACK] = \
                                     self.get_sub_cmd_processor_callback(main_cmd,\
-                                    next_token)
+                                    sub_cmd_name)
                             parsed_sub_cmd[TOKEN_CALLBACK] = \
                                     self.get_sub_cmd_prompt_token_callback(main_cmd,\
-                                    next_token)
-                        parsed_cmd = self.build_options(parsed_cmd,\
+                                    sub_cmd_name)
+                            parsed_cmd = self.build_options(parsed_cmd,\
                                 cmd_tokens, 'SUB_CMD')
+                            return parsed_cmd
                         return parsed_cmd
                 else:
                     return parsed_cmd
@@ -557,6 +559,6 @@ class CommandParser(object):
             else:
                 parsed_cmd[SUB_CMD][sub_cmd_name][OPTIONS] = options
                 parsed_cmd[SUB_CMD][sub_cmd_name][KW_OPTIONS] = kw_options
-            return parsed_cmd
+        return parsed_cmd
 
 
