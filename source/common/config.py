@@ -134,3 +134,34 @@ class Token(object):
         _color_key = 'command_color'
         Symbol = _config_parser.get(TOKENS_SECTION, _symbol_key)
         Color =  _config_parser.get(TOKENS_SECTION, _color_key)
+
+    class SubCommand(object):
+        _symbol_key = 'sub_command_symbol'
+        _color_key = 'sub_command_color'
+        Symbol = _config_parser.get(TOKENS_SECTION, _symbol_key)
+        Color =  _config_parser.get(TOKENS_SECTION, _color_key)
+
+    class CmdOpt(object):
+        _symbol_key = 'cmd_opt_symbol'
+        _color_key = 'cmd_opt_color'
+        Symbol = _config_parser.get(TOKENS_SECTION, _symbol_key)
+        Color =  _config_parser.get(TOKENS_SECTION, _color_key)
+
+    class SubCmdOpt(object):
+        _symbol_key = 'sub_cmd_opt_symbol'
+        _color_key = 'sub_cmd_opt_color'
+        Symbol = _config_parser.get(TOKENS_SECTION, _symbol_key)
+        Color =  _config_parser.get(TOKENS_SECTION, _color_key)
+
+    class LessThan(object):
+        _symbol_key = 'less_than_symbol'
+        _color_key = 'less_than_color'
+        Symbol = _config_parser.get(TOKENS_SECTION, _symbol_key)
+        Color =  _config_parser.get(TOKENS_SECTION, _color_key)
+
+    class GreaterThan(object):
+        _symbol_key = 'greater_than_symbol'
+        _color_key = 'greater_than_color'
+        Symbol = _config_parser.get(TOKENS_SECTION, _symbol_key)
+        Color =  _config_parser.get(TOKENS_SECTION, _color_key)
+

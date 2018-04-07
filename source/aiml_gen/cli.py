@@ -35,6 +35,11 @@ class AimlGeneratorCLI(object):
         Token.LeftBracket: config.Token.LBracket.Color,
         Token.RightBracket: config.Token.RBracket.Color,
         Token.Command: config.Token.Command.Color,
+        Token.SubCommand: config.Token.SubCommand.Color,
+        Token.CmdOpt: config.Token.CmdOpt.Color,
+        Token.SubCmdOpt: config.Token.SubCmdOpt.Color,
+        Token.LessThan: config.Token.LessThan.Color,
+        Token.GreaterThan: config.Token.GreaterThan.Color,
     })
 
     def __init__(self):
@@ -49,6 +54,8 @@ class AimlGeneratorCLI(object):
                 port=self._db_port, user=self._db_user,\
                 password=self._db_password, database=self._database)
         self._cmd_history = FileHistory('.ide_aiml_gen.history')
+        self._current_cmd_missing_opt = None
+        self._current_sub_cmd_missing_opt = None
         self.__test_register_commands()
 
     def __test_new_cmd_callback(self, *args, **kwargs):
@@ -98,9 +105,9 @@ class AimlGeneratorCLI(object):
         """Prompt when in default/no cmd modes
         """
         return [
-            (Token.Default, config.Token.Default.Symbol),
+            (Token.Pound, config.Token.Pound.Symbol),
             (Token.LeftBracket, config.Token.LBracket.Symbol),
-            (Token.Command, config.Token.Command.Symbol),
+            (Token.Default, config.Token.Default.Symbol),
             (Token.RightBracket, config.Token.RBracket.Symbol),
             (Token.Colon, config.Token.Colon.Symbol),
         ]
@@ -109,9 +116,20 @@ class AimlGeneratorCLI(object):
         """Prompt when in sub command mode
         """
         return [
-            (Token.Command, '%s ' % self._current_sub_cmd),
+            (Token.Pound, config.Token.Pound.Symbol),
             (Token.LeftBracket, config.Token.LBracket.Symbol),
-            (Token.Pattern, self._current_sub_cmd_missing_opt if self._current_sub_cmd_missing_opt is not None else 'SUBCMD')
+            (Token.Command, '%s ' % self._current_cmd),
+            (Token.RightBracket, config.Token.RBracket.Symbol),
+            (Token.Seperator, '-'),
+            (Token.LeftBracket, config.Token.LBracket.Symbol),
+            (Token.SubCommand, '%s ' % self._current_sub_cmd),
+            (Token.RightBracket, config.Token.RBracket.Symbol),
+            (Token.Dot, '.'),
+            (Token.Dot, '.'),
+            (Token.LeftBracket, config.Token.LBracket.Symbol),
+            (Token.SubCmdOpt, self._current_sub_cmd_missing_opt \
+                if self._current_sub_cmd_missing_opt is not None\
+                else 'OPT'),
             (Token.RightBracket, config.Token.RBracket.Symbol),
             (Token.Colon, config.Token.Colon.Symbol),
         ]
@@ -121,9 +139,16 @@ class AimlGeneratorCLI(object):
         missing options or kw-options
         """
         return [
-            (Token.Default, self._current_cmd),
+            (Token.Pound, config.Token.Pound.Symbol),
             (Token.LeftBracket, config.Token.LBracket.Symbol),
-            (Token.Command, self._current_cmd_missing_opt if self._current_cmd_missing_opt is not None else 'CMD'),
+            (Token.Command, '%s ' % self._current_cmd),
+            (Token.RightBracket, config.Token.RBracket.Symbol),
+            (Token.Dot, '.'),
+            (Token.Dot, '.'),
+            (Token.LeftBracket, config.Token.LBracket.Symbol),
+            (Token.CmdOpt, self._current_cmd_missing_opt\
+                    if self._current_cmd_missing_opt is not None\
+                    else 'OPT'),
             (Token.RightBracket, config.Token.RBracket.Symbol),
             (Token.Colon, config.Token.Colon.Symbol),
         ]
@@ -320,8 +345,8 @@ class AimlGeneratorCLI(object):
             self._current_sub_cmd_missing_opt = None
             self._current_cmd_missing_opt = fld_name
         else:
-            prompt_tokens_callback = self._parser.get_sub_cmd_prompt_token_callback(self._current_sub_cmd)\
-            if self._parser.get_sub_cmd_prompt_token_callback(self._current_sub_cmd) is not None\
+            prompt_tokens_callback = self._parser.get_sub_cmd_prompt_token_callback(self._current_cmd, self._current_sub_cmd)\
+            if self._parser.get_sub_cmd_prompt_token_callback(self._current_cmd, self._current_sub_cmd) is not None\
             else self.get_sub_cmd_prompt_tokens #the default prompt tokens callback
             self._current_cmd_missing_opt = None
             self._current_sub_cmd_missing_opt = fld_name
