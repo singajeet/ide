@@ -29,6 +29,7 @@ class AimlGeneratorCLI(object):
         # Prompt.
         Token.Colon:    config.Token.Colon.Color,
         Token.Pound:    config.Token.Pound.Color,
+        Token.Dollar:   config.Token.Dollar.Color,
         Token.Pattern:  config.Token.Pattern.Color,
         Token.Template: config.Token.Template.Color,
         Token.Default:  config.Token.Default.Color,
@@ -105,7 +106,7 @@ class AimlGeneratorCLI(object):
         """Prompt when in default/no cmd modes
         """
         return [
-            (Token.Pound, config.Token.Pound.Symbol),
+            (Token.Dollar, config.Token.Dollar.Symbol),
             (Token.LeftBracket, config.Token.LBracket.Symbol),
             (Token.Default, config.Token.Default.Symbol),
             (Token.RightBracket, config.Token.RBracket.Symbol),
@@ -116,13 +117,13 @@ class AimlGeneratorCLI(object):
         """Prompt when in sub command mode
         """
         return [
-            (Token.Pound, config.Token.Pound.Symbol),
+            (Token.Dollar, config.Token.Dollar.Symbol),
             (Token.LeftBracket, config.Token.LBracket.Symbol),
-            (Token.Command, '%s ' % self._current_cmd),
+            (Token.Command, '%s' % self._current_cmd),
             (Token.RightBracket, config.Token.RBracket.Symbol),
             (Token.Seperator, '-'),
             (Token.LeftBracket, config.Token.LBracket.Symbol),
-            (Token.SubCommand, '%s ' % self._current_sub_cmd),
+            (Token.SubCommand, '%s' % self._current_sub_cmd),
             (Token.RightBracket, config.Token.RBracket.Symbol),
             (Token.Dot, '.'),
             (Token.Dot, '.'),
@@ -139,9 +140,9 @@ class AimlGeneratorCLI(object):
         missing options or kw-options
         """
         return [
-            (Token.Pound, config.Token.Pound.Symbol),
+            (Token.Dollar, config.Token.Dollar.Symbol),
             (Token.LeftBracket, config.Token.LBracket.Symbol),
-            (Token.Command, '%s ' % self._current_cmd),
+            (Token.Command, '%s' % self._current_cmd),
             (Token.RightBracket, config.Token.RBracket.Symbol),
             (Token.Dot, '.'),
             (Token.Dot, '.'),
@@ -157,21 +158,18 @@ class AimlGeneratorCLI(object):
         """docstring for validate_for_required_args"""
         #SCENARIO: Return True (i.e., cmd is valid)
         #if no required attributes for main cmd
-        #and no sub-cmd for this main cmd
-        if not parsed_cmd.__contains__('REQUIRED') and\
-                (not parsed_cmd.__contains__('SUB_CMD')\
-                or len(parsed_cmd['SUB_CMD'] <= 0)):
+        #and no sub-cmd for this main cmd found
+        if len(parsed_cmd['REQUIRED']) <= 0 and\
+                len(parsed_cmd['SUB_CMD']) <= 0:
             return (True, {})
         #SCENARIO: Main cmd has required attr's and\
         #no-sub cmd for this main cmd
-        elif parsed_cmd.__contains__('REQUIRED') and\
-                (not parsed_cmd.__contains__('SUB_CMD')\
-                or len(parsed_cmd['SUB_CMD']) <= 0):
+        elif len(parsed_cmd['REQUIRED']) > 0 and\
+                len(parsed_cmd['SUB_CMD']) <= 0:
             #SUB-SCENARIO: if no opts or kw-opts exists
             #in cmd, return true
-            if not parsed_cmd.__contains__('OPTIONS')\
-                    and not\
-                    parsed_cmd.__contains__('KW_OPTIONS'):
+            if len(parsed_cmd['OPTIONS']) <= 0 and\
+                    len(parsed_cmd['KW_OPTIONS']) <= 0:
                 return (True, {})
             #SUB-SCENARIO: if opts or kw-opts exist in cmd
             #check whether all required flds exists in any
@@ -181,9 +179,8 @@ class AimlGeneratorCLI(object):
                 flds_dict = {}
                 flds_dict['CMD'] = cmd_flds
                 return (status, flds_dict)
-        elif not parsed_cmd.__contains__('REQUIRED') and\
-                (parsed_cmd.__contains__('SUB_CMD') and\
-                len(parsed_cmd['SUB_CMD']) > 0):
+        elif len(parsed_cmd['REQUIRED']) <= 0 and\
+                len(parsed_cmd['SUB_CMD']) > 0:
             #sub_cmds = parsed_cmd['SUB_CMD']
             sub_cmd_name = tuple(parsed_cmd['SUB_CMD'])[0]
             sub_cmd_details = parsed_cmd['SUB_CMD'][sub_cmd_name]
@@ -191,9 +188,8 @@ class AimlGeneratorCLI(object):
             flds_dict = {}
             flds_dict['SUB_CMD'] = sub_cmd_flds
             return (status, flds_dict)
-        elif parsed_cmd.__contains__('REQUIRED') and \
-                (parsed_cmd.__contains__('SUB_CMD') and\
-                len(parsed_cmd['SUB_CMD']) > 0):
+        elif len(parsed_cmd['REQUIRED']) > 0 and\
+                len(parsed_cmd['SUB_CMD']) > 0:
             flds_dict={}
             (cmd_status, cmd_flds) = self.validate_options(parsed_cmd)
             flds_dict['CMD'] = cmd_flds
@@ -212,7 +208,7 @@ class AimlGeneratorCLI(object):
         required_fields = parsed_cmd['REQUIRED']
         req_fld_dict = { fld : False for fld in required_fields }
         if req_fld_dict is not None and len(req_fld_dict) > 0:
-            if parsed_cmd.__contains__('OPTIONS'):
+            if len(parsed_cmd['OPTIONS']) > 0:
                 for fld_name, status in req_fld_dict.items():
                     #check if fld available in options
                     if status is False:
@@ -221,7 +217,7 @@ class AimlGeneratorCLI(object):
                                 and parsed_cmd['OPTIONS'][fld_name]\
                                 is not None:
                                     req_fld_dict[fld_name] = True
-            if parsed_cmd.__contains__('KW_OPTIONS'):
+            if len(parsed_cmd['KW_OPTIONS']) > 0:
                 for fld_name, status in req_fld_dict.items():
                     #check if fld available in kw-options
                     if status is False:
@@ -275,40 +271,56 @@ class AimlGeneratorCLI(object):
             if len(cmd_text.split()) > 1:
                 parsed_cmd = self._parser.parse_cmd_text(cmd_text)
                 if parsed_cmd is None:
-                    print('Command format is not valid! Kindly check and try again')
+                    print('Invalid command syntax!')
+                    self.list_all_cmds()
                     continue
                 (valid, missing_flds) = self.validate_for_required_args(parsed_cmd)
                 if valid:
                     self._current_cmd = parsed_cmd['MAIN_CMD']
-                    if parsed_cmd.__contains__('SUB_CMD'):
-                        self._current_sub_cmd = parsed_cmd['SUB_CMD']
+                    if len(parsed_cmd['SUB_CMD']) > 0:
+                        self._current_sub_cmd = tuple(parsed_cmd['SUB_CMD'])[0]
                     else:
                         self._current_sub_cmd = None
                     self.execute_command(parsed_cmd)
                 else:
                     #required fields are missing, prompt for same
                     self._current_cmd = parsed_cmd['MAIN_CMD']
-                    if parsed_cmd.__contains__('SUB_CMD'):
+                    if len(parsed_cmd['SUB_CMD']) > 0:
                         self._current_sub_cmd = tuple(parsed_cmd['SUB_CMD'])[0]
                     else:
                         self._current_sub_cmd = None
                     for flds_type, flds_list in missing_flds.items():
                         for fld in flds_list:
-                            parsed_cmd = self.get_missing_fld_input(fld, flds_type, parsed_cmd)
+                            parsed_cmd = self.get_missing_fld_input(fld,\
+                                    flds_type, parsed_cmd)
                     self.execute_command(parsed_cmd)
             #Only one token is provided in the command text
             else:
                 #if the only token provided is a valid command
                 #process it
                 if self._parser.cmd_exists(cmd_text):
-                    processor_callback = self._parser.get_cmd_processor_callback(cmd_text)
-                    if processor_callback is not None and callable(processor_callback):
-                        processor_callback(cmd_text)
+                    if not self._parser.cmd_has_sub_cmds(cmd_text):
+                        processor_callback = \
+                                self._parser.get_cmd_processor_callback(cmd_text)
+                        if processor_callback is not None\
+                                and callable(processor_callback):
+                            processor_callback(cmd_text)
+                        else:
+                            print("No callable found for command: %s" % cmd_text)
                     else:
-                        print("No callable found for command: %s" % cmd_text)
+                        print('No sub-command provided for command: %s' % cmd_text)
+                        self.list_sub_cmds_of_cmd(cmd_text)
                 else:
                     print('No such command found: %s' % cmd_text)
-                    self.print_cmd_help(cmd_text)
+                    self.list_all_cmds()
+
+    def list_all_cmds(self):
+        """docstring for list_all_cmds"""
+        self._parser.list_all_cmds();
+
+    def list_sub_cmds_of_cmd(self, cmd_name):
+        """docstring for list_sub_cmds_of_cmd"""
+        self._parser.list_sub_cmds_of_cmd(cmd_name)
 
     def execute_command(self, parsed_cmd):
         """docstring for execute_command"""

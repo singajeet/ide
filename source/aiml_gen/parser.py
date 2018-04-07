@@ -395,6 +395,34 @@ class CommandParser(object):
 
     #========== End Sub Commands =============#
 
+    #========== Help Documentation functions =========#
+
+    def list_all_cmds(self):
+        """docstring for list_all_cmds"""
+        print('List of commands:')
+        print('')
+        if self._command_registry is not None:
+            for cmd, cmd_dict in self._command_registry.items():
+                print(cmd)
+        else:
+            print('None!')
+
+    def list_sub_cmds_of_cmd(self, cmd_name):
+        """docstring for list_sub_cmds_of_cmd"""
+        print('Available sub commands for command: %s' % cmd_name)
+        print('')
+        if self._command_registry is not None:
+            if self.cmd_has_sub_cmds(cmd_name):
+                sub_cmds = self.get_sub_cmds(cmd_name)
+                for sub_cmd_name, sub_cmd in sub_cmds.items():
+                    print(sub_cmd_name)
+            else:
+                print('None!')
+        else:
+            print('None!')
+
+    #========== End help documentation functions =====#
+
     def parse_cmd_text(self, cmd_text):
         """docstring for parse_cmd_text"""
         if cmd_text is None:
@@ -406,9 +434,17 @@ class CommandParser(object):
             main_cmd = cmd_tokens[0].upper()
             #check if the provided cmd is registered or not
             if self.cmd_exists(main_cmd):
-                #process the command further to get subcmds and opts
+                #Init the dict which will contains the parsed values of command
+                #----- Init ------#
                 parsed_cmd[MAIN_CMD] = main_cmd
                 parsed_cmd[REQUIRED] = self.get_cmd_required_fields(main_cmd)
+                parsed_cmd[PROCESSOR_CALLBACK] = self.get_cmd_processor_callback(main_cmd)
+                parsed_cmd[TOKEN_CALLBACK] = self.get_cmd_prompt_token_callback(main_cmd)
+                parsed_cmd[OPTIONS] = {}
+                parsed_cmd[KW_OPTIONS] = {}
+                parsed_cmd[SUB_CMD] = {}
+                #----- end init -------#
+                #process the command further to get subcmds and opts
                 if len(cmd_tokens) > 1:
                     #we still have more tokens to be processed
                     #The tokens could be param to main cmd or
@@ -445,6 +481,8 @@ class CommandParser(object):
                             parsed_sub_cmd[TOKEN_CALLBACK] = \
                                     self.get_sub_cmd_prompt_token_callback(main_cmd,\
                                     sub_cmd_name)
+                            parsed_sub_cmd[OPTIONS] = {}
+                            parsed_sub_cmd[KW_OPTIONS] = {}
                             parsed_cmd = self.build_options(parsed_cmd,\
                                 cmd_tokens, 'SUB_CMD')
                             return parsed_cmd

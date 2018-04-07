@@ -99,6 +99,12 @@ class Token(object):
         Symbol = _config_parser.get(TOKENS_SECTION, _symbol_key)
         Color =  _config_parser.get(TOKENS_SECTION, _color_key)
 
+    class Dollar(object):
+        _symbol_key = 'dollar_symbol'
+        _color_key = 'dollar_color'
+        Symbol = _config_parser.get(TOKENS_SECTION, _symbol_key)
+        Color =  _config_parser.get(TOKENS_SECTION, _color_key)
+
     class Pattern(object):
         _symbol_key = 'pattern_symbol'
         _color_key = 'pattern_color'
