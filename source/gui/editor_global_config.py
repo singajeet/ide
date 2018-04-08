@@ -10,7 +10,7 @@ import pathlib
 
 
 # Constants
-CONFIG_FILE = 'editor_config.ini'
+CONFIG_FILE = 'editor_global_config.ini'
 
 # Setup config
 _base_path = pathlib.Path(__file__).parent
@@ -29,6 +29,12 @@ EDITOR_MOUSE_SUPPORT_KEY = 'enable_mouse_support'
 EDITOR_MOUSE_SUPPORT = _config.get(EDITOR_SECTION, EDITOR_MOUSE_SUPPORT_KEY)
 EDITOR_EDITING_MODE_KEY = 'edit_mode'
 EDITOR_EDITING_MODE = _config.get(EDITOR_SECTION, EDITOR_EDITING_MODE_KEY)
+EDITOR_HISTORY_FILE_KEY = 'history_file'
+EDITOR_HISTORY_FILE = _config.get(EDITOR_SECTION, EDITOR_HISTORY_FILE_KEY)
+EDITOR_EXTENDED_CONFIGS_FOLDER_KEY = 'extended_config_folder'
+EDITOR_EXTENDED_CONFIGS_FOLDER = _config.get(EDITOR_SECTION, EDITOR_EXTENDED_CONFIGS_FOLDER_KEY)
+EDITOR_ACTIVE_CONF_KEY = 'active_conf'
+EDITOR_ACTIVE_CONF = _config.get(EDITOR_SECTION, EDITOR_ACTIVE_CONF_KEY)
 #--------------
 KEY_BINDINGS_SECTION = 'key_bindings'
 KB_ABORT_EXIT_BIND_KEY = 'enable_abort_exit_binding'
