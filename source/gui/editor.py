@@ -19,7 +19,7 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.contrib.completers import WordCompleter
 from prompt_toolkit.layout.margins import NumberredMargin, ScrollbarMargin
 from pygments.token import Token
-from gui import editor_config
+from gui import editor_global_config as egc
 
 
 class Editor(object):
@@ -35,7 +35,7 @@ class Editor(object):
         self._key_binding_registry = self._key_handlers.get_key_binding_registry()
         self._application = None
         self._cli = None
-        self._editor_title = editor_config.EDITOR_TITLE
+        self._editor_title = egc.EDITOR_TITLE
         self._on_editor_started = None
         self._on_editor_rendered = None
         self._on_editor_content_changed = None
@@ -50,20 +50,20 @@ class Editor(object):
         completer = None
         auto_suggest = None
         history = None
-        if bool(editor_config.BUFFER_COMPLETER) is True:
+        if bool(egc.BUFFER_COMPLETER) is True:
             completer = WordCompleter(self._completer_list)
-        if bool(editor_config.BUFFER_AUTO_SUGGEST) is True:
+        if bool(egc.BUFFER_AUTO_SUGGEST) is True:
             auto_suggest = AutoSuggestFromHistory()
-        if bool(editor_config.BUFFER_HISTORY) is True:
+        if bool(egc.BUFFER_HISTORY) is True:
             history = FileHistory('history.temp')
         self._editor_buffer = Buffer(
                 completer=completer,
                 auto_suggest=auto_suggest,
                 history=history,
-                tempfile_suffix=bool(editor_config.BUFFER_TEMP_FILE_SUFFIX),
-                is_multiline=bool(editor_config.BUFFER_MULTILINE),
-                complete_while_typing=bool(editor_config.BUFFER_COMPLETE_WHILE_TYPING),
-                enable_history_search=bool(editor_config.BUFFER_ENABLE_HIST_SEARCH)
+                tempfile_suffix=bool(egc.BUFFER_TEMP_FILE_SUFFIX),
+                is_multiline=bool(egc.BUFFER_MULTILINE),
+                complete_while_typing=bool(egc.BUFFER_COMPLETE_WHILE_TYPING),
+                enable_history_search=bool(egc.BUFFER_ENABLE_HIST_SEARCH)
                 )
 
     def setup_cli(self):
@@ -73,9 +73,9 @@ class Editor(object):
 
     def setup_layout(self):
         """docstring for setup_layout"""
-        if bool(editor_config.TEXT_EDITOR_ENABLE_LEFT_MARGIN) is True:
+        if bool(egc.TEXT_EDITOR_ENABLE_LEFT_MARGIN) is True:
             self._left_margin = NumberredMargin(display_tildes=True)
-        if bool(editor_config.TEXT_EDITOR_ENABLE_RIGHT_MARGIN) is True:
+        if bool(egc.TEXT_EDITOR_ENABLE_RIGHT_MARGIN) is True:
             self._right_margin = ScrollbarMargin(display_arrows=True)
         self._buffer_control = BufferControl(buffer_name=self._editor_buffer_name)
         self._editor_aiml_code_window = Window(content=self._buffer_control, left_margins=[self._left_margin,])
@@ -124,12 +124,12 @@ class Editor(object):
         self._clipboard = InMemoryClipboard()
         self._application = Application(key_bindings_registry=self._key_binding_registry,
                 layout=self._layout,
-                mouse_support=bool(editor_config.EDITOR_MOUSE_SUPPORT),
+                mouse_support=bool(egc.EDITOR_MOUSE_SUPPORT),
                 use_alternate_screen=True,
                 initial_focussed_buffer=self._editor_buffer_name,
                 clipboard=self._clipboard,
                 get_title=self.get_editor_title,
-                editing_mode=EditingMode.VI if editor_config.EDITOR_EDITING_MODE == 'VI' else EditingMode.EMACS,
+                editing_mode=EditingMode.VI if egc.EDITOR_EDITING_MODE == 'VI' else EditingMode.EMACS,
                 on_initialize=self.editor_started_callback,
                 on_render=self.editor_rendered_callback,
                 on_buffer_changed=self.editor_content_changed
@@ -143,12 +143,12 @@ class KeyHandlers(object):
 
     __single_instance = None
     __key_binding_manager = KeyBindingManager(
-            enable_abort_and_exit_bindings=bool(editor_config.KB_ABORT_EXIT_BIND),
-            enable_system_bindings=bool(editor_config.KB_SYSTEM_BIND),
-            enable_search=bool(editor_config.KB_SEARCH),
-            enable_open_in_editor=bool(editor_config.KB_OPEN_IN_EDITOR),
-            enable_extra_page_navigation=bool(editor_config.KB_PAGE_SCROLL),
-            enable_auto_suggest_bindings=bool(editor_config.KB_AUTO_SUGGEST)
+            enable_abort_and_exit_bindings=bool(egc.KB_ABORT_EXIT_BIND),
+            enable_system_bindings=bool(egc.KB_SYSTEM_BIND),
+            enable_search=bool(egc.KB_SEARCH),
+            enable_open_in_editor=bool(egc.KB_OPEN_IN_EDITOR),
+            enable_extra_page_navigation=bool(egc.KB_PAGE_SCROLL),
+            enable_auto_suggest_bindings=bool(egc.KB_AUTO_SUGGEST)
             )
     registry = __key_binding_manager.registry
 
